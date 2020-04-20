@@ -1,5 +1,5 @@
 //
-//  IUserListActivity.kt
+//  IEmployeeAdmin.kt
 //  PureMVC Android Demo - EmployeeAdmin
 //
 //  Copyright(c) 2020 Saad Shams <saad.shams@puremvc.org>
@@ -9,20 +9,19 @@
 package org.puremvc.kotlin.demos.android.employeeadmin.view.interfaces
 
 import org.puremvc.kotlin.demos.android.employeeadmin.model.enumerator.RoleEnum
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.RoleVO
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserVO
 
-interface IUserListActivity {
+interface IEmployeeAdmin {
 
     fun getUsers(): ArrayList<UserVO>
 
-    fun saveUser(user: UserVO, roles: ArrayList<RoleEnum>)
+    fun deleteUser(username: String)
 
-    fun updateUser(user: UserVO)
+    fun saveUser(user: UserVO, roleVO: RoleVO?)
 
-    fun deleteUser(userVO: UserVO)
+    fun updateUser(user: UserVO, roleVO: RoleVO?)
 
-    fun getUserRoles(username: String): ArrayList<RoleEnum>
-
-    fun updateUserRoles(username: String, roles: ArrayList<RoleEnum>)
+    fun getUserRoles(username: String): ArrayList<RoleEnum>?
 
 }

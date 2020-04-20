@@ -9,18 +9,23 @@
 package org.puremvc.kotlin.demos.android.employeeadmin.controller
 
 import androidx.appcompat.app.AppCompatActivity
-import org.puremvc.kotlin.demos.android.employeeadmin.view.UserListMediator
-import org.puremvc.kotlin.demos.android.employeeadmin.view.components.UserListActivity
+import org.puremvc.kotlin.demos.android.employeeadmin.view.EmployeeAdminMediator
+import org.puremvc.kotlin.demos.android.employeeadmin.view.components.EmployeeAdmin
 import org.puremvc.kotlin.multicore.interfaces.INotification
 import org.puremvc.kotlin.multicore.patterns.command.SimpleCommand
+import java.lang.ref.WeakReference
 
 class RegisterCommand: SimpleCommand() {
 
     override fun execute(notification: INotification) {
-        val activity = notification.body as AppCompatActivity
 
-        if (activity is UserListActivity) {
-            facade.registerMediator(UserListMediator(activity))
+        val activity = notification.body as WeakReference<AppCompatActivity>
+
+        if (activity.get() is EmployeeAdmin) {
+            if (facade.hasMediator(EmployeeAdminMediator.NAME))
+                facade.removeMediator(EmployeeAdminMediator.NAME)
+
+            facade.registerMediator(EmployeeAdminMediator(activity as WeakReference<Any?>))
         }
     }
 

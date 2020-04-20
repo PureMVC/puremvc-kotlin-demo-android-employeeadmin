@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/employee_admin"
+        app:startDestination="@id/userList">
+
+    <fragment
+        android:id="@+id/userList"
+        android:name="org.puremvc.kotlin.demos.android.employeeadmin.view.components.UserList"
+        android:label="UserList">
+
+        <action android:id="@+id/action_userList_to_userForm" app:destination="@id/userForm"
+                app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"
+                app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/userForm"
+        android:name="org.puremvc.kotlin.demos.android.employeeadmin.view.components.UserForm"
+        android:label="UserForm">
+
+        <argument android:name="userVO" app:argType="org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserVO" />
+
+    </fragment>
+
+</navigation>

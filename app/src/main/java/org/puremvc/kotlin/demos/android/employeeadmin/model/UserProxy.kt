@@ -18,29 +18,28 @@ class UserProxy: Proxy(NAME, ArrayList<UserVO>()) {
     }
 
     fun addItem(userVO: UserVO) {
-        users().add(userVO)
+        users.add(userVO)
     }
 
     fun updateItem(userVO: UserVO) {
-        val list = users()
-        for (i in 0 until list.size) {
-            if (list[i].username == userVO.username) {
-                list[i] = userVO
+        for (i in 0 until users.size) {
+            if (users[i].username == userVO.username) {
+                users[i] = userVO
+                break
             }
         }
     }
 
-    fun deleteItem(userVO: UserVO) {
-        val list = users()
-        for (i in 0 until list.size) {
-            if (list[i].username == userVO.username) {
-                list.removeAt(i)
+    fun deleteItem(username: String) {
+        for (i in 0 until users.size) {
+            if (users[i].username == username) {
+                users.removeAt(i)
+                break
             }
         }
     }
 
-    fun users() : ArrayList<UserVO> {
-        return data as ArrayList<UserVO>
-    }
+    @Suppress("UNCHECKED_CAST")
+    val users: ArrayList<UserVO> get() = data as ArrayList<UserVO>
 
 }

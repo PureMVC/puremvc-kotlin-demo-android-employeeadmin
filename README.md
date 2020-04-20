@@ -5,8 +5,12 @@ This demo illustrates techniques for performing routine maintenance operations i
 ## Screenshot
 ![PureMVC Kotlin Android Demo: Employee Admin](http://puremvc.org/pages/images/screenshots/PureMVC-Shot-Kotlin-Android-EmployeeAdmin.png)
 
+## Tests
+* [Android Instrumented Tests](http://puremvc.org/pages/images/screenshots/PureMVC-Shot-Kotlin-Android-EmployeeAdmin-UITests.gif)
+* [Unit Tests](http://puremvc.github.io/pages/images/screenshots/PureMVC-Shot-Kotlin-Android-EmployeeAdmin-UnitTests.png)
+
 ## Status
-Production - [Version 1.0](https://github.com/PureMVC/puremvc-kotlin-demo-android-employeeadmin/blob/master/VERSION)
+Production - [Version 1.1](https://github.com/PureMVC/puremvc-kotlin-demo-android-employeeadmin/blob/master/VERSION)
 
 ## Platforms / Technologies
 * [Android](https://en.wikipedia.org/wiki/Android_(operating_system))

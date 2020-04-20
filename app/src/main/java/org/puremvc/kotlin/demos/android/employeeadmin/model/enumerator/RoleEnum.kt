@@ -14,7 +14,6 @@ import kotlinx.android.parcel.Parcelize
 @Parcelize
 enum class RoleEnum: Parcelable {
 
-    NONE_SELECTED { override fun toString() = "--NONE SELECTED--" },
     ADMIN { override fun toString() = "Administrator" },
     ACCT_PAY { override fun toString() = "Accounts Payable" },
     ACCT_RCV { override fun toString() = "Accounts Receivable" },
@@ -48,12 +47,6 @@ enum class RoleEnum: Parcelable {
                 SHIPPING,
                 RETURNS
             )
-        }
-
-        fun comboList(): ArrayList<RoleEnum> {
-            val roles = list()
-            roles.add(0, NONE_SELECTED)
-            return roles
         }
     }
 

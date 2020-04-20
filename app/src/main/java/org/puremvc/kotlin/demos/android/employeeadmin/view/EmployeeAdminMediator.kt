@@ -1,5 +1,5 @@
 //
-//  UserListMediator.kt
+//  EmployeeAdminMediator.kt
 //  PureMVC Android Demo - EmployeeAdmin
 //
 //  Copyright(c) 2020 Saad Shams <saad.shams@puremvc.org>
@@ -13,11 +13,12 @@ import org.puremvc.kotlin.demos.android.employeeadmin.model.UserProxy
 import org.puremvc.kotlin.demos.android.employeeadmin.model.enumerator.RoleEnum
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.RoleVO
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserVO
-import org.puremvc.kotlin.demos.android.employeeadmin.view.components.UserListActivity
-import org.puremvc.kotlin.demos.android.employeeadmin.view.interfaces.IUserListActivity
+import org.puremvc.kotlin.demos.android.employeeadmin.view.components.EmployeeAdmin
+import org.puremvc.kotlin.demos.android.employeeadmin.view.interfaces.IEmployeeAdmin
 import org.puremvc.kotlin.multicore.patterns.mediator.Mediator
+import java.lang.ref.WeakReference
 
-class UserListMediator(override var viewComponent: Any?): Mediator(NAME, viewComponent), IUserListActivity {
+class EmployeeAdminMediator(override var viewComponent: WeakReference<Any?>?): Mediator(NAME, viewComponent), IEmployeeAdmin {
 
     companion object {
         const val NAME: String = "UserListMediator"
@@ -31,33 +32,36 @@ class UserListMediator(override var viewComponent: Any?): Mediator(NAME, viewCom
         userProxy = facade.retrieveProxy(UserProxy.NAME) as UserProxy
         roleProxy = facade.retrieveProxy(RoleProxy.NAME) as RoleProxy
 
-        (viewComponent as UserListActivity).setDelegate(this)
+        (viewComponent?.get() as EmployeeAdmin).setDelegate(this)
     }
 
     override fun getUsers(): ArrayList<UserVO> {
-        return userProxy.users()
+        return userProxy.users
     }
 
-    override fun saveUser(user: UserVO, roles: ArrayList<RoleEnum>) {
+    override fun saveUser(user: UserVO, roleVO: RoleVO?) {
         userProxy.addItem(user)
-        roleProxy.addItem(RoleVO(user.username, roles))
+        roleVO?.let {
+            roleProxy.addItem(it)
+        } ?: run {
+            roleProxy.addItem(RoleVO(user.username, arrayListOf()))
+        }
     }
 
-    override fun updateUser(user: UserVO) {
+    override fun updateUser(user: UserVO, roleVO: RoleVO?) {
         userProxy.updateItem(user)
+        roleVO?.let {
+            roleProxy.updateUserRoles(it.username, it.roles)
+        }
     }
 
-    override fun deleteUser(userVO: UserVO) {
-        userProxy.deleteItem(userVO)
-        roleProxy.deleteItem(userVO.username)
+    override fun deleteUser(username: String) {
+        userProxy.deleteItem(username)
+        roleProxy.deleteItem(username)
     }
 
-    override fun getUserRoles(username: String): ArrayList<RoleEnum> {
+    override fun getUserRoles(username: String): ArrayList<RoleEnum>? {
         return roleProxy.getUserRoles(username)
-    }
-
-    override fun updateUserRoles(username: String, roles: ArrayList<RoleEnum>) {
-        roleProxy.updateUserRoles(username, roles)
     }
 
 }

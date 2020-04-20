@@ -8,14 +8,16 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.controller
 
+import org.puremvc.kotlin.demos.android.employeeadmin.Application
 import org.puremvc.kotlin.demos.android.employeeadmin.view.ApplicationMediator
 import org.puremvc.kotlin.multicore.interfaces.INotification
 import org.puremvc.kotlin.multicore.patterns.command.SimpleCommand
+import java.lang.ref.WeakReference
 
 class PrepViewCommand: SimpleCommand() {
 
     override fun execute(notification: INotification) {
-        facade.registerMediator(ApplicationMediator(notification.body))
+        facade.registerMediator(ApplicationMediator(WeakReference(notification.body as Application)))
     }
 
 }

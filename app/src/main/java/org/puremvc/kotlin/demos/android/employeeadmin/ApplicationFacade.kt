@@ -13,6 +13,7 @@ import org.puremvc.kotlin.demos.android.employeeadmin.controller.RegisterCommand
 import org.puremvc.kotlin.demos.android.employeeadmin.controller.StartupCommand
 import org.puremvc.kotlin.multicore.interfaces.IFacade
 import org.puremvc.kotlin.multicore.patterns.facade.Facade
+import java.lang.ref.WeakReference
 
 class ApplicationFacade(key: String) : Facade(key) {
 
@@ -33,7 +34,7 @@ class ApplicationFacade(key: String) : Facade(key) {
         registerCommand(REGISTER) { RegisterCommand() }
     }
 
-    fun registerActivity(activity: AppCompatActivity) {
+    fun registerActivity(activity: WeakReference<AppCompatActivity>) {
         sendNotification(REGISTER, activity)
     }
 

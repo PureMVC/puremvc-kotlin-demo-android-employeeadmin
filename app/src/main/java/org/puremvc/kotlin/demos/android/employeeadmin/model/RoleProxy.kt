@@ -1,5 +1,5 @@
 //
-//  RoleProxy.java
+//  RoleProxy.kt
 //  PureMVC Android Demo - EmployeeAdmin
 //
 //  Copyright(c) 2020 Saad Shams <saad.shams@puremvc.org>
@@ -19,42 +19,39 @@ class RoleProxy: Proxy(NAME, ArrayList<RoleVO>()) {
     }
 
     fun addItem(roleVO: RoleVO) {
-        roles().add(roleVO)
+        roles.add(roleVO)
     }
 
-    fun getUserRoles(username: String): ArrayList<RoleEnum> {
-        var list = ArrayList<RoleEnum>()
-        for (i in 0 until roles().size) {
-            if (roles()[i].username == username) {
-                list = roles()[i].roles;
-                break;
+    fun getUserRoles(username: String): ArrayList<RoleEnum>? {
+        var list: ArrayList<RoleEnum>? = null
+        for (i in 0 until roles.size) {
+            if (roles[i].username == username) {
+                list = roles[i].roles
+                break
             }
         }
         return list
     }
 
-    fun updateUserRoles(username: String, roles: ArrayList<RoleEnum>) {
-        val list = roles()
-        for (i in 0 until list.size) {
-            if (list[i].username == username) {
-                list[i].roles = roles
+    fun updateUserRoles(username: String, role: ArrayList<RoleEnum>) {
+        for (i in 0 until roles.size) {
+            if (roles[i].username == username) {
+                roles[i].roles = role
                 break
             }
         }
     }
 
     fun deleteItem(username: String) {
-        val list = roles()
-        for(i in 0 until list.size) {
-            if (list[i].username == username) {
-                list.removeAt(i)
+        for(i in 0 until roles.size) {
+            if (roles[i].username == username) {
+                roles.removeAt(i)
                 break
             }
         }
     }
 
-    private fun roles(): ArrayList<RoleVO> {
-        return data as ArrayList<RoleVO>
-    }
+    @Suppress("UNCHECKED_CAST")
+    val roles: ArrayList<RoleVO> get() = data as ArrayList<RoleVO>
 
 }

@@ -10,27 +10,18 @@ package org.puremvc.kotlin.demos.android.employeeadmin
 
 import android.app.Application
 import androidx.appcompat.app.AppCompatActivity
+import java.lang.ref.WeakReference
 
 class Application: Application() {
 
-    companion object {
-        const val ACTIVITY_USER_FORM = 1
-
-        const val ACTIVITY_USER_ROLE = 2
-
-        const val BUNDLE_USER = "BUNDLE_USER"
-
-        const val BUNDLE_USER_ROLE = "BUNDLE_USER_ROLE"
-    }
-
-    private val facade = ApplicationFacade.getInstance("EmployeeAdmin") as ApplicationFacade
+    private val facade by lazy { ApplicationFacade.getInstance("EmployeeAdmin") as ApplicationFacade }
 
     override fun onCreate() {
         super.onCreate()
         facade.startup(this)
     }
 
-    fun registerActivity(activity: AppCompatActivity) {
+    fun registerActivity(activity: WeakReference<AppCompatActivity>) {
         facade.registerActivity(activity)
     }
 
