@@ -19,6 +19,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
+import org.puremvc.kotlin.demos.android.employeeadmin.R
 import org.puremvc.kotlin.demos.android.employeeadmin.databinding.UserFormBinding
 import org.puremvc.kotlin.demos.android.employeeadmin.model.enumerator.DeptEnum
 import org.puremvc.kotlin.demos.android.employeeadmin.model.enumerator.RoleEnum
@@ -60,8 +61,8 @@ class UserForm: Fragment() {
 
                 if (userVO.password != confirm.text.toString()) {
                     AlertDialog.Builder(activity!!)
-                        .setTitle("Error")
-                        .setMessage("Your password and confirmation password do not match.")
+                        .setTitle(getString(R.string.error))
+                        .setMessage(getString(R.string.error_password))
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .setPositiveButton(android.R.string.yes, null)
                         .create().show()
@@ -70,8 +71,8 @@ class UserForm: Fragment() {
 
                 if (!userVO.isValid()!!) {
                     AlertDialog.Builder(activity!!)
-                        .setTitle("Error")
-                        .setMessage("Invalid Form Data.")
+                        .setTitle(getString(R.string.error))
+                        .setMessage(getString(R.string.error_invalid_data))
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .setPositiveButton(android.R.string.yes, null)
                         .create().show()

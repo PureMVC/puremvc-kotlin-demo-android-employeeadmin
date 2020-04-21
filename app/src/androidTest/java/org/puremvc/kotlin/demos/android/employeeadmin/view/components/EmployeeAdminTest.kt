@@ -157,7 +157,7 @@ class EmployeeAdminTest {
 
         onView(withId(R.id.save)).perform(click())
 
-        onView(withText("Invalid Form Data.")).check(matches(isDisplayed()))
+        onView(withText(R.string.error_invalid_data)).check(matches(isDisplayed()))
         onView(withId(android.R.id.button1)).perform(click())
     }
 
@@ -168,7 +168,7 @@ class EmployeeAdminTest {
         onView(withId(R.id.confirm)).perform(replaceText("ijk456"))
         onView(withId(R.id.save)).perform(click())
 
-        onView(withText("Your password and confirmation password do not match.")).check(matches(isDisplayed()))
+        onView(withText(R.string.error)).check(matches(isDisplayed()))
         onView(withId(android.R.id.button1)).perform(click())
     }
 
