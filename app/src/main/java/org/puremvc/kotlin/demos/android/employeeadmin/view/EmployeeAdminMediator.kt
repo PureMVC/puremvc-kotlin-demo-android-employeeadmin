@@ -39,13 +39,9 @@ class EmployeeAdminMediator(override var viewComponent: WeakReference<Any?>?): M
         return userProxy.users
     }
 
-    override fun saveUser(user: UserVO, roleVO: RoleVO?) {
+    override fun saveUser(user: UserVO, roleVO: RoleVO) {
         userProxy.addItem(user)
-        roleVO?.let {
-            roleProxy.addItem(it)
-        } ?: run {
-            roleProxy.addItem(RoleVO(user.username, arrayListOf()))
-        }
+        roleProxy.addItem(roleVO)
     }
 
     override fun updateUser(user: UserVO, roleVO: RoleVO?) {

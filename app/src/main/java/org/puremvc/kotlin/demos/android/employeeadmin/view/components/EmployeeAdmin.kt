@@ -37,7 +37,7 @@ class EmployeeAdmin: AppCompatActivity(), UserList.IUserList, UserForm.IUserForm
         delegate.deleteUser(username)
     }
 
-    override fun save(user: UserVO, roleVO: RoleVO?) {
+    override fun save(user: UserVO, roleVO: RoleVO) {
         delegate.saveUser(user, roleVO)
     }
 

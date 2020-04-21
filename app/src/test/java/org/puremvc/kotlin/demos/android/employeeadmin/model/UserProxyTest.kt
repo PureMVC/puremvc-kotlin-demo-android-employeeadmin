@@ -16,7 +16,7 @@ import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserVO
 class UserProxyTest {
 
     @Test
-    fun addItem() {
+    fun testAddItem() {
         val userProxy = UserProxy()
         userProxy.addItem(UserVO("jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", DeptEnum.SHIPPING))
 
@@ -31,7 +31,7 @@ class UserProxyTest {
     }
 
     @Test
-    fun updateItem() {
+    fun testUpdateItem() {
         val userProxy = UserProxy()
         userProxy.addItem(UserVO("jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", DeptEnum.SHIPPING))
 
@@ -46,10 +46,10 @@ class UserProxyTest {
     }
 
     @Test
-    fun deleteItem() {
+    fun testDeleteItem() {
         val userProxy = UserProxy()
         userProxy.addItem(UserVO("jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", DeptEnum.SHIPPING))
-        userProxy.addItem(UserVO("sstooge", "Shemp", "Stooge", "shemp@stooges.com", "xyz983", DeptEnum.QC))
+        userProxy.addItem(UserVO("sstooge", "Shemp", "Stooge", "shemp@stooges.com", "xyz987", DeptEnum.QC))
 
         userProxy.deleteItem("sstooge")
         assertEquals(1, userProxy.users.size)

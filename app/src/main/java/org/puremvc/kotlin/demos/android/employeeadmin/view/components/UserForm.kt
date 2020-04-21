@@ -80,7 +80,8 @@ class UserForm: Fragment() {
                 }
 
                 if (!username.isEnabled) {
-                    delegate.get()?.update(userVO, RoleVO(userVO.username, roleEnums ?: arrayListOf()))
+                    val roleVO = if (roleEnums != null) RoleVO(userVO.username, roleEnums!!) else null
+                    delegate.get()?.update(userVO, roleVO)
                     activity?.onBackPressed()
                     return@OnClickListener
                 }
@@ -110,17 +111,13 @@ class UserForm: Fragment() {
         navController = Navigation.findNavController(view)
     }
 
-    override fun onSaveInstanceState(bundle: Bundle) {
-        super.onSaveInstanceState(bundle)
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         roleEnums = data?.getParcelableArrayListExtra("roleEnums")
     }
 
     interface IUserForm {
-        fun save(user: UserVO, roleVO: RoleVO?)
+        fun save(user: UserVO, roleVO: RoleVO)
         fun update(user: UserVO, roleVO: RoleVO?)
     }
 

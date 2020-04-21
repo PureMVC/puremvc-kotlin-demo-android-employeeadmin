@@ -18,7 +18,7 @@ interface IEmployeeAdmin {
 
     fun deleteUser(username: String)
 
-    fun saveUser(user: UserVO, roleVO: RoleVO?)
+    fun saveUser(user: UserVO, roleVO: RoleVO)
 
     fun updateUser(user: UserVO, roleVO: RoleVO?)
 

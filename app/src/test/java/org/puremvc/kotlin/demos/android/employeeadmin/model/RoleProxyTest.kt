@@ -17,7 +17,7 @@ import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.RoleVO
 class RoleProxyTest {
 
     @Test
-    fun addItem() {
+    fun testAddItem() {
         val roleProxy = RoleProxy()
         roleProxy.addItem(RoleVO("jstooge", arrayListOf(RoleEnum.SALES, RoleEnum.RETURNS, RoleEnum.SHIPPING)))
 
@@ -25,7 +25,7 @@ class RoleProxyTest {
     }
 
     @Test
-    fun getRoleVO() {
+    fun testGetRoleVO() {
         val roleProxy = RoleProxy()
         roleProxy.addItem(RoleVO("jstooge", arrayListOf(RoleEnum.SALES, RoleEnum.RETURNS, RoleEnum.SHIPPING)))
 
@@ -37,7 +37,7 @@ class RoleProxyTest {
     }
 
     @Test
-    fun updateUserRoles() {
+    fun testUpdateUserRoles() {
         val roleProxy = RoleProxy()
         roleProxy.addItem(RoleVO("jstooge", arrayListOf(RoleEnum.SALES, RoleEnum.RETURNS, RoleEnum.SHIPPING)))
         roleProxy.addItem(RoleVO("sstooge", arrayListOf(RoleEnum.ADMIN, RoleEnum.ACCT_PAY)))
@@ -49,7 +49,7 @@ class RoleProxyTest {
     }
 
     @Test
-    fun deleteItem() {
+    fun testDeleteItem() {
         val roleProxy = RoleProxy()
         roleProxy.addItem(RoleVO("jstooge", arrayListOf(RoleEnum.SALES, RoleEnum.RETURNS, RoleEnum.SHIPPING)))
         roleProxy.addItem(RoleVO("sstooge", arrayListOf(RoleEnum.ADMIN, RoleEnum.ACCT_PAY)))
