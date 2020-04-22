@@ -106,8 +106,8 @@ class EmployeeAdminTest {
         onView(withId(R.id.first)).perform(replaceText("Joe"))
         onView(withId(R.id.last)).perform(replaceText("Stooge"))
         onView(withId(R.id.email)).perform(replaceText("joe@stooges.com"))
-        onView(withId(R.id.username)).perform(replaceText("jstooge"))
         onView(withId(R.id.username)).check(matches(isEnabled()))
+        onView(withId(R.id.username)).perform(replaceText("jstooge"))
         onView(withId(R.id.password)).perform(replaceText("abc123"))
         onView(withId(R.id.confirm)).perform(replaceText("abc123"))
         onView(withId(R.id.spinner)).perform(click());
@@ -133,8 +133,8 @@ class EmployeeAdminTest {
         onView(withId(R.id.first)).check(matches(withText("Joe")))
         onView(withId(R.id.last)).check(matches(withText("Stooge")))
         onView(withId(R.id.email)).check(matches(withText("joe@stooges.com")))
-        onView(withId(R.id.username)).check(matches(withText("jstooge")))
         onView(withId(R.id.username)).check(matches(not(isEnabled())))
+        onView(withId(R.id.username)).check(matches(withText("jstooge")))
         onView(withId(R.id.password)).check(matches(withText("abc123")))
         onView(withId(R.id.confirm)).check(matches(withText("abc123")))
         onView(withId(R.id.spinner)).check(matches(withSpinnerText(containsString(DeptEnum.SHIPPING.toString()))));
@@ -143,12 +143,49 @@ class EmployeeAdminTest {
 
         // user list view
         onView(withId(R.id.recyclerView)).check(matches(isDisplayed()))
+
+        onView(withId(R.id.recyclerView)).perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(total, swipeLeft()))
+        onView(withId(R.id.recyclerView)).check { view, _ -> assertThat((view as RecyclerView).adapter?.itemCount, equalTo(total)) }
     }
 
     @Test
-    fun testDeleteMoe() {
-        onView(withId(R.id.recyclerView)).perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(2, swipeLeft()))
-        onView(withId(R.id.recyclerView)).check { view, _ -> assertThat((view as RecyclerView).adapter?.itemCount, equalTo(2)) }
+    fun testNewUserWithoutRoles() {
+        var total = 0
+        onView(withId(R.id.recyclerView)).check { view, _ -> total = (view as RecyclerView).adapter?.itemCount!! } // total records
+
+        onView(withId(R.id.fab)).perform(click())
+
+        // enter details
+        onView(withId(R.id.first)).perform(replaceText("Shemp"))
+        onView(withId(R.id.last)).perform(replaceText("Stooge"))
+        onView(withId(R.id.email)).perform(replaceText("shemp@stooges.com"))
+        onView(withId(R.id.username)).check(matches(isEnabled()))
+        onView(withId(R.id.username)).perform(replaceText("sshemp"))
+        onView(withId(R.id.password)).perform(replaceText("xyz987"))
+        onView(withId(R.id.confirm)).perform(replaceText("xyz987"))
+        onView(withId(R.id.spinner)).perform(click());
+        onData(anything()).atPosition(DeptEnum.ACCT.ordinal).perform(click());
+        onView(withId(R.id.save)).perform(click())
+
+        // verify new record
+        onView(withId(R.id.recyclerView)).check { view, _ -> assertThat((view as RecyclerView).adapter?.itemCount, equalTo(total + 1)) }
+        onView(withId(R.id.recyclerView)).perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(total, click()))
+
+        // select roles
+        onView(withId(R.id.rolesButton)).perform(click())
+        onView(withId(R.id.listView)).check(matches(isDisplayed()))
+        onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(0).perform(click())
+        onView(withId(R.id.ok)).perform(click())
+        onView(withId(R.id.save)).perform(click())
+
+        // verify roles
+        onView(withId(R.id.recyclerView)).perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(total, click()))
+        onView(withId(R.id.rolesButton)).perform(click())
+        onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(0).check(matches(isChecked()))
+        onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(1).check(matches(not((isChecked()))))
+
+        onView(withId(R.id.ok)).perform(click())
+        pressBack()
     }
 
     @Test
