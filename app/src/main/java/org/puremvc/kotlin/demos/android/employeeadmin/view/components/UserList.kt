@@ -8,6 +8,7 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.view.components
 
+import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -44,35 +45,10 @@ class UserList: Fragment() {
                 layoutManager = LinearLayoutManager(activity)
                 adapter = UserListAdapter(userVOs)
 
-                ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
-
-                    val background = ColorDrawable(Color.parseColor(context.getString(R.string.colorBackground)))
-                    val icon = ContextCompat.getDrawable(activity!!, R.drawable.ic_delete_white_24dp)!!
-
+                ItemTouchHelper(object : SwipeHelper(context) {
                     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                         userVOs.removeAt(viewHolder.adapterPosition)
                         adapter?.notifyItemRemoved(viewHolder.adapterPosition)
-                    }
-
-                    override fun onChildDraw(canvas: Canvas, recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, dX: Float, dY: Float, actionState: Int, isCurrentlyActive: Boolean) {
-                        val itemView = viewHolder.itemView
-
-                        background.setBounds(itemView.right + dX.toInt(), itemView.top, itemView.right, itemView.bottom)
-                        background.draw(canvas)
-
-                        val margin = (itemView.height - icon.intrinsicHeight) / 2
-                        val left = itemView.right - margin - icon.intrinsicWidth
-                        val top = itemView.top + margin
-                        val right = itemView.right - margin
-                        val bottom = itemView.bottom - margin
-                        icon.setBounds(left, top, right, bottom)
-                        icon.draw(canvas)
-
-                        super.onChildDraw(canvas, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
-                    }
-
-                    override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
-                        return false
                     }
                 }).attachToRecyclerView(this)
             }
@@ -80,6 +56,7 @@ class UserList: Fragment() {
             fab.setOnClickListener {
                 navController.navigate(R.id.action_userList_to_userForm)
             }
+
         }
         return binding.root
     }
@@ -87,6 +64,34 @@ class UserList: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         navController = Navigation.findNavController(view)
+    }
+
+    private abstract class SwipeHelper(context: Context): ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+
+        val background = ColorDrawable(Color.parseColor(context.getString(R.string.colorBackground)))
+        val icon = ContextCompat.getDrawable(context, R.drawable.ic_delete_white_24dp)!!
+
+        override fun onChildDraw(canvas: Canvas, recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, dX: Float, dY: Float, actionState: Int, isCurrentlyActive: Boolean) {
+            val itemView = viewHolder.itemView
+
+            background.setBounds(itemView.right + dX.toInt(), itemView.top, itemView.right, itemView.bottom)
+            background.draw(canvas)
+
+            val margin = (itemView.height - icon.intrinsicHeight) / 2
+            val left = itemView.right - margin - icon.intrinsicWidth
+            val top = itemView.top + margin
+            val right = itemView.right - margin
+            val bottom = itemView.bottom - margin
+            icon.setBounds(left, top, right, bottom)
+            icon.draw(canvas)
+
+            super.onChildDraw(canvas, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+        }
+
+        override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
+            return false
+        }
+
     }
 
     // Adapter
