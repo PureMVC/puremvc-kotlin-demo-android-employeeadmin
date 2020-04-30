@@ -20,6 +20,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
+import androidx.navigation.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -41,7 +42,7 @@ class UserList: Fragment() {
         val binding = UserListBinding.inflate(inflater, container, false).apply {
             recyclerView.apply {
                 layoutManager = LinearLayoutManager(activity)
-                adapter = UserListAdapter()
+                adapter = UserListAdapter(userVOs)
 
                 ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
 
@@ -89,11 +90,11 @@ class UserList: Fragment() {
     }
 
     // Adapter
-    private inner class UserListAdapter: RecyclerView.Adapter<UserListAdapter.UserViewHolder>() {
+    private class UserListAdapter(val userVOs: ArrayList<UserVO>): RecyclerView.Adapter<UserListAdapter.UserViewHolder>() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
             val binding = UserListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-            return UserViewHolder(binding)
+            return UserViewHolder(binding, parent.findNavController())
         }
 
         override fun onBindViewHolder(userViewHolder: UserViewHolder, position: Int) {
@@ -105,7 +106,7 @@ class UserList: Fragment() {
         }
 
         // ViewHolder
-        private inner class UserViewHolder(val userListItem: UserListItemBinding): RecyclerView.ViewHolder(userListItem.root) {
+        private class UserViewHolder(val userListItem: UserListItemBinding, val navController: NavController): RecyclerView.ViewHolder(userListItem.root) {
 
             fun bind(userVO: UserVO) {
                 userListItem.fullname = userVO.toString()
