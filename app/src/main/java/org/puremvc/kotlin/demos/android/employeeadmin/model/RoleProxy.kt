@@ -8,50 +8,61 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.model
 
-import org.puremvc.kotlin.demos.android.employeeadmin.model.enumerator.RoleEnum
-import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.RoleVO
+import android.content.ContentValues
+import android.database.sqlite.SQLiteOpenHelper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.puremvc.kotlin.multicore.patterns.proxy.Proxy
+import java.lang.Exception
 
-class RoleProxy: Proxy(NAME, ArrayList<RoleVO>()) {
+class RoleProxy(private val connection: SQLiteOpenHelper): Proxy(NAME, null) {
 
     companion object {
         const val NAME: String = "RoleProxy"
     }
 
-    fun addItem(roleVO: RoleVO) {
-        roles.add(roleVO)
-    }
-
-    fun getUserRoles(username: String): ArrayList<RoleEnum>? {
-        var list: ArrayList<RoleEnum>? = null
-        for (i in 0 until roles.size) {
-            if (roles[i].username == username) {
-                list = roles[i].roles
-                break
+    suspend fun findAll(): HashMap<Long, String>? = withContext(Dispatchers.IO) {
+        var roles: HashMap<Long, String>? = null
+        connection.readableDatabase.query("role", null, null, null, null, null, null).use { cursor ->
+            if (cursor.count > 0) roles = HashMap()
+            while (cursor.moveToNext()) {
+                roles?.put(cursor.getLong(cursor.getColumnIndex("id")), cursor.getString(cursor.getColumnIndex("name")))
             }
         }
-        return list
+        return@withContext roles
     }
 
-    fun updateUserRoles(username: String, role: ArrayList<RoleEnum>) {
-        for (i in 0 until roles.size) {
-            if (roles[i].username == username) {
-                roles[i].roles = role
-                break
+    suspend fun findAllByUserId(id: Long): HashMap<Long, String>? = withContext(Dispatchers.IO) {
+        var roles: HashMap<Long, String>? = null
+        connection.readableDatabase.rawQuery("SELECT id, name FROM role INNER JOIN employee_role ON role.id = employee_role.role_id WHERE employee_id = ?", arrayOf(id.toString())).use { cursor ->
+            if (cursor.count > 0) roles = HashMap()
+            while (cursor.moveToNext()) {
+                roles?.put(cursor.getLong(cursor.getColumnIndex("id")), cursor.getString(cursor.getColumnIndex("name")))
             }
         }
+        return@withContext roles
     }
 
-    fun deleteItem(username: String) {
-        for(i in 0 until roles.size) {
-            if (roles[i].username == username) {
-                roles.removeAt(i)
-                break
+    suspend fun updateRolesByUserId(id: Long, roles: HashMap<Long, String>): ArrayList<Long>? = withContext(Dispatchers.IO) {
+        var ids: ArrayList<Long>? = null
+        val database = connection.writableDatabase
+        try {
+            database.beginTransaction()
+            database.delete("employee_role", "employee_id = ?", arrayOf(id.toString()))
+            if (roles.count() > 0) ids = ArrayList()
+            roles.forEach { role ->
+                val values = ContentValues()
+                values.put("employee_id", id)
+                values.put("role_id", role.key)
+                ids?.add(database.insertOrThrow("employee_role", null, values))
             }
+            database.setTransactionSuccessful()
+        } catch (exception: Exception) {
+            throw exception
+        } finally {
+            database.endTransaction()
         }
+        return@withContext ids
     }
-
-    @Suppress("UNCHECKED_CAST")
-    val roles: ArrayList<RoleVO> get() = data as ArrayList<RoleVO>
 
 }

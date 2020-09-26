@@ -2,12 +2,7 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
-        <variable name="departments" type="android.widget.ArrayAdapter" />
         <variable name="userVO" type="org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserVO" />
-
-        <variable name="rolesListener" type="android.view.View.OnClickListener" />
-        <variable name="saveListener" type="android.view.View.OnClickListener" />
-        <variable name="cancelListener" type="android.view.View.OnClickListener" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="match_parent">
@@ -113,6 +108,8 @@
                 app:layout_constraintStart_toStartOf="@id/guidelineLeft"
                 app:layout_constraintTop_toBottomOf="@+id/email" />
 
+
+
         <EditText
                 android:id="@+id/confirm"
                 android:layout_width="0dp"
@@ -135,7 +132,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="28dp"
                 android:layout_marginEnd="4dp"
-                android:adapter="@{departments}"
                 app:layout_constraintEnd_toStartOf="@+id/rolesButton"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toStartOf="@id/guidelineLeft"
@@ -149,7 +145,6 @@
                 android:layout_marginStart="4dp"
                 android:layout_marginTop="10dp"
                 android:text="@string/roles"
-                android:onClick="@{rolesListener}"
                 app:layout_constraintEnd_toEndOf="@id/guidelineRight"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toEndOf="@+id/spinner"
@@ -164,7 +159,6 @@
                 android:backgroundTint="@android:color/holo_blue_dark"
                 android:text="@string/cancel"
                 android:textColor="#FFFFFF"
-                android:onClick="@{cancelListener}"
                 app:layout_constraintEnd_toStartOf="@+id/save"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toStartOf="@id/guidelineLeft"
@@ -179,7 +173,6 @@
                 android:backgroundTint="@android:color/holo_green_dark"
                 android:text="@{userVO == null ? @string/save : @string/update}"
                 android:textColor="#FFFFFF"
-                android:onClick="@{saveListener}"
                 app:layout_constraintEnd_toEndOf="@id/guidelineRight"
                 app:layout_constraintEnd_toStartOf="@+id/guidelineRight"
                 app:layout_constraintHorizontal_bias="0.5"

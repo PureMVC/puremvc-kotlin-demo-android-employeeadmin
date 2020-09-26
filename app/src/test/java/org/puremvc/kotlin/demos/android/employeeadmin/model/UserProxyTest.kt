@@ -8,51 +8,144 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.model
 
+import android.database.sqlite.SQLiteCursor
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Test
-import org.puremvc.kotlin.demos.android.employeeadmin.model.enumerator.DeptEnum
+import org.junit.runner.RunWith
+import org.mockito.Mockito.*
+import org.mockito.runners.MockitoJUnitRunner
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserVO
 
+@RunWith(MockitoJUnitRunner::class)
 class UserProxyTest {
 
-    @Test
-    fun testAddItem() {
-        val userProxy = UserProxy()
-        userProxy.addItem(UserVO("jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", DeptEnum.SHIPPING))
+    private lateinit var connection: SQLiteOpenHelper
 
-        assertEquals(1, userProxy.users.size)
-        val userVO = userProxy.users[0]
-        assertEquals(userVO.username, "jstooge")
-        assertEquals(userVO.first, "Joe")
-        assertEquals(userVO.last, "Stooge")
-        assertEquals(userVO.email, "joe@stooges.com")
-        assertEquals(userVO.password, "abc123")
-        assertEquals(userVO.department, DeptEnum.SHIPPING)
+    private lateinit var database: SQLiteDatabase
+
+    private lateinit var cursor: SQLiteCursor
+
+    private lateinit var userProxy: UserProxy
+
+    @Before
+    fun setup() {
+        connection = mock(SQLiteOpenHelper::class.java)
+        database = mock(SQLiteDatabase::class.java)
+        cursor = mock(SQLiteCursor::class.java)
+        userProxy = UserProxy(connection)
+
+        `when`(connection.readableDatabase).thenReturn(database)
+        `when`(connection.writableDatabase).thenReturn(database)
+        `when`(database.rawQuery(anyString(), any())).thenReturn(cursor)
+        `when`(database.query(anyString(), any(), any(), any(), any(), any(), any())).thenReturn(cursor)
+        `when`(cursor.moveToNext()).thenReturn(true).thenReturn(false)
     }
 
     @Test
-    fun testUpdateItem() {
-        val userProxy = UserProxy()
-        userProxy.addItem(UserVO("jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", DeptEnum.SHIPPING))
+    fun testFindAll() {
+        `when`(cursor.count).thenReturn(1)
+        `when`(cursor.getColumnIndex("id")).thenReturn(1)
+        `when`(cursor.getLong(1)).thenReturn(1)
 
-        userProxy.updateItem(UserVO("jstooge", "Joe1", "Stooge1", "joe1@stooges.com", "xyz987", DeptEnum.QC))
-        val userVO = userProxy.users[0]
-        assertEquals(userVO.username, "jstooge")
-        assertEquals(userVO.first, "Joe1")
-        assertEquals(userVO.last, "Stooge1")
-        assertEquals(userVO.email, "joe1@stooges.com")
-        assertEquals(userVO.password, "xyz987")
-        assertEquals(userVO.department, DeptEnum.QC)
+        `when`(cursor.getColumnIndex("first")).thenReturn(2)
+        `when`(cursor.getString(2)).thenReturn("Larry")
+
+        `when`(cursor.getColumnIndex("last")).thenReturn(3)
+        `when`(cursor.getString(3)).thenReturn("Stooge")
+
+        runBlocking {
+            userProxy.findAll().let { user ->
+                assertEquals(1, user!![0].id)
+                assertEquals("Larry", user[0].first)
+                assertEquals("Stooge", user[0].last)
+            }
+        }
     }
 
     @Test
-    fun testDeleteItem() {
-        val userProxy = UserProxy()
-        userProxy.addItem(UserVO("jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", DeptEnum.SHIPPING))
-        userProxy.addItem(UserVO("sstooge", "Shemp", "Stooge", "shemp@stooges.com", "xyz987", DeptEnum.QC))
+    fun testFindById() {
+        `when`(cursor.getColumnIndex("id")).thenReturn(1)
+        `when`(cursor.getLong(1)).thenReturn(1)
+        `when`(cursor.getColumnIndex("username")).thenReturn(2)
+        `when`(cursor.getString(2)).thenReturn("lstooge")
+        `when`(cursor.getColumnIndex("first")).thenReturn(3)
+        `when`(cursor.getString(3)).thenReturn("Larry")
+        `when`(cursor.getColumnIndex("last")).thenReturn(4)
+        `when`(cursor.getString(4)).thenReturn("Stooge")
+        `when`(cursor.getColumnIndex("email")).thenReturn(5)
+        `when`(cursor.getString(5)).thenReturn("larry@stooges.com")
+        `when`(cursor.getColumnIndex("password")).thenReturn(6)
+        `when`(cursor.getString(6)).thenReturn("ijk456")
+        `when`(cursor.getColumnIndex("departmentId")).thenReturn(7)
+        `when`(cursor.getLong(7)).thenReturn(0)
+        `when`(cursor.getColumnIndex("department_name")).thenReturn(8)
+        `when`(cursor.getString(8)).thenReturn("Accounting")
 
-        userProxy.deleteItem("sstooge")
-        assertEquals(1, userProxy.users.size)
+        runBlocking {
+            userProxy.findById(1)?.let { user ->
+                assertEquals(1, user.id)
+                assertEquals("lstooge", user.username)
+                assertEquals("Larry", user.first)
+                assertEquals("Stooge", user.last)
+                assertEquals("larry@stooges.com", user.email)
+                assertEquals("ijk456", user.password)
+                assertEquals(0L, user.department?.first)
+                assertEquals("Accounting", user.department?.second)
+            }
+        }
+    }
+
+    @Test
+    fun testSave() {
+        `when`(database.insertOrThrow(any(), any(), any())).thenReturn(1)
+        val user = UserVO(0, "jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", Pair(3, "Shipping"))
+
+        runBlocking {
+            val result = userProxy.save(user)
+
+            assertEquals(1, result)
+        }
+    }
+
+    @Test
+    fun testUpdate() {
+        `when`(database.update(any(), any(), any(), any())).thenReturn(1)
+        val user = UserVO(1, "jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", Pair(3, "Shipping"))
+
+        runBlocking {
+            val result = userProxy.update(user)
+
+            assertEquals(1, result)
+        }
+    }
+
+    @Test
+    fun testDeleteById() {
+        `when`(database.delete(any(), any(), any())).thenReturn(1)
+
+        runBlocking {
+            val result = userProxy.deleteById(1)
+            assertEquals(1, result)
+        }
+    }
+
+    @Test
+    fun testFindAllDepartments() {
+        `when`(cursor.count).thenReturn(1)
+        `when`(cursor.getColumnIndex("id")).thenReturn(1)
+        `when`(cursor.getLong(1)).thenReturn(0)
+        `when`(cursor.getColumnIndex("name")).thenReturn(2)
+        `when`(cursor.getString(2)).thenReturn("Accounting")
+
+        runBlocking {
+            val departments = userProxy.findAllDepartments()
+            assertEquals(1, departments!!.size)
+            assertEquals("Accounting", departments.get(0))
+        }
     }
 
 }

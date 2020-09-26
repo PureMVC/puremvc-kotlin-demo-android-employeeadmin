@@ -8,7 +8,6 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.view
 
-import org.puremvc.kotlin.demos.android.employeeadmin.Application
 import org.puremvc.kotlin.multicore.patterns.mediator.Mediator
 import java.lang.ref.WeakReference
 

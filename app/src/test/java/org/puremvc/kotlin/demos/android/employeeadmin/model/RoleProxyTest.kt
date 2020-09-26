@@ -8,58 +8,80 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.model
 
+import android.database.sqlite.SQLiteCursor
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
+import kotlinx.coroutines.runBlocking
 import org.junit.Test
 
 import org.junit.Assert.*
-import org.puremvc.kotlin.demos.android.employeeadmin.model.enumerator.RoleEnum
-import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.RoleVO
+import org.junit.Before
+import org.mockito.Mockito.*
 
 class RoleProxyTest {
 
-    @Test
-    fun testAddItem() {
-        val roleProxy = RoleProxy()
-        roleProxy.addItem(RoleVO("jstooge", arrayListOf(RoleEnum.SALES, RoleEnum.RETURNS, RoleEnum.SHIPPING)))
+    private lateinit var connection: SQLiteOpenHelper
 
-        assertEquals(1, roleProxy.roles.size)
+    private lateinit var database: SQLiteDatabase
+
+    private lateinit var cursor: SQLiteCursor
+
+    private lateinit var roleProxy: RoleProxy
+
+    @Before
+    fun setup() {
+        connection = mock(SQLiteOpenHelper::class.java)
+        database = mock(SQLiteDatabase::class.java)
+        cursor = mock(SQLiteCursor::class.java)
+        roleProxy = RoleProxy(connection)
+
+        `when`(connection.readableDatabase).thenReturn(database)
+        `when`(connection.writableDatabase).thenReturn(database)
+        `when`(database.rawQuery(anyString(), any())).thenReturn(cursor)
+        `when`(database.query(anyString(), any(), any(), any(), any(), any(), any())).thenReturn(cursor)
+        `when`(cursor.moveToNext()).thenReturn(true).thenReturn(false)
     }
 
     @Test
-    fun testGetRoleVO() {
-        val roleProxy = RoleProxy()
-        roleProxy.addItem(RoleVO("jstooge", arrayListOf(RoleEnum.SALES, RoleEnum.RETURNS, RoleEnum.SHIPPING)))
+    fun testFindAll() {
+        `when`(cursor.count).thenReturn(1)
+        `when`(cursor.getColumnIndex("id")).thenReturn(1)
+        `when`(cursor.getInt(1)).thenReturn(1)
+        `when`(cursor.getColumnIndex("name")).thenReturn(2)
+        `when`(cursor.getString(2)).thenReturn("Administrator")
 
-        val roles = roleProxy.getUserRoles("jstooge")!!
-        assertEquals(3, roles.size)
-        assertEquals(RoleEnum.SALES, roles[0])
-        assertEquals(RoleEnum.RETURNS, roles[1])
-        assertEquals(RoleEnum.SHIPPING, roles[2])
+        runBlocking {
+            val roles =  roleProxy.findAll()
+            assertEquals(1, roles!!.size)
+            assertEquals("Administrator", roles[0])
+        }
     }
 
     @Test
-    fun testUpdateUserRoles() {
-        val roleProxy = RoleProxy()
-        roleProxy.addItem(RoleVO("jstooge", arrayListOf(RoleEnum.SALES, RoleEnum.RETURNS, RoleEnum.SHIPPING)))
-        roleProxy.addItem(RoleVO("sstooge", arrayListOf(RoleEnum.ADMIN, RoleEnum.ACCT_PAY)))
+    fun testFindAllByUserId() {
+        `when`(cursor.getColumnIndex("id")).thenReturn(1)
+        `when`(cursor.getInt(1)).thenReturn(0)
+        `when`(cursor.getColumnIndex("name")).thenReturn(2)
+        `when`(cursor.getString(2)).thenReturn("Administrator")
 
-        roleProxy.updateUserRoles("sstooge", arrayListOf(RoleEnum.RETURNS))
-        val roles = roleProxy.getUserRoles("sstooge")!!
-        assertEquals(1, roles.size)
-        assertEquals(RoleEnum.RETURNS, roles[0])
+        runBlocking {
+            roleProxy.findAllByUserId(1)?.let { roles ->
+                assertEquals(1, roles.size)
+                assertEquals("Administrator", roles[0])
+            }
+        }
     }
 
     @Test
-    fun testDeleteItem() {
-        val roleProxy = RoleProxy()
-        roleProxy.addItem(RoleVO("jstooge", arrayListOf(RoleEnum.SALES, RoleEnum.RETURNS, RoleEnum.SHIPPING)))
-        roleProxy.addItem(RoleVO("sstooge", arrayListOf(RoleEnum.ADMIN, RoleEnum.ACCT_PAY)))
+    fun testUpdateRolesByUserId() {
+        `when`(database.insertOrThrow(any(), any(), any())).thenReturn(1).thenReturn(2)
+        runBlocking {
+            val ids = roleProxy.updateRolesByUserId(1, hashMapOf(1L to "Administrator", 2L to "Accounts Payable"))
 
-        roleProxy.deleteItem("sstooge")
-        assertNull(roleProxy.getUserRoles("sstooge"))
-        assertEquals(1, roleProxy.roles.size)
-
-        roleProxy.deleteItem("jstooge")
-        assertNull(roleProxy.getUserRoles("jstooge"))
-        assertEquals(0, roleProxy.roles.size)
+            assertEquals(2, ids!!.size)
+            assertEquals(1, ids[0])
+            assertEquals(2, ids[1])
+        }
     }
+
 }

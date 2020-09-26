@@ -1,6 +1,15 @@
+//
+//  EmployeeAdminTest.kt
+//  PureMVC Android Demo - EmployeeAdmin
+//
+//  Copyright(c) 2020 Saad Shams <saad.shams@puremvc.org>
+//  Your reuse is governed by the Creative Commons Attribution 3.0 License
+//
+
 package org.puremvc.kotlin.demos.android.employeeadmin.view.components
 
 import androidx.recyclerview.widget.RecyclerView
+import androidx.test.espresso.Espresso
 import androidx.test.espresso.Espresso.onData
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.*
@@ -8,15 +17,14 @@ import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.contrib.RecyclerViewActions
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.rules.ActivityScenarioRule
-import androidx.test.runner.AndroidJUnit4
+import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner
 import org.hamcrest.Matchers.*
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.puremvc.kotlin.demos.android.employeeadmin.R
-import org.puremvc.kotlin.demos.android.employeeadmin.model.enumerator.DeptEnum
 
-@RunWith(AndroidJUnit4::class)
+@RunWith(AndroidJUnit4ClassRunner::class)
 class EmployeeAdminTest {
 
     @get: Rule
@@ -63,7 +71,7 @@ class EmployeeAdminTest {
         onView(withId(R.id.password)).perform(replaceText("abc123"))
         onView(withId(R.id.confirm)).perform(replaceText("abc123"))
         onView(withId(R.id.spinner)).perform(click());
-        onData(anything()).atPosition(DeptEnum.ACCT.ordinal).perform(click());
+        onData(anything()).atPosition(1).perform(click()); // Accounting
         onView(withId(R.id.save)).perform(click())
 
         // verify
@@ -81,7 +89,24 @@ class EmployeeAdminTest {
         onView(withId(R.id.username)).check(matches(not(isEnabled())))
         onView(withId(R.id.password)).check(matches(withText("abc123")))
         onView(withId(R.id.confirm)).check(matches(withText("abc123")))
-        onView(withId(R.id.spinner)).check(matches(withSpinnerText(containsString(DeptEnum.ACCT.toString()))));
+        onView(withId(R.id.spinner)).check(matches(withSpinnerText(containsString("Accounting"))));
+
+        // revert roles
+        onView(withId(R.id.rolesButton)).perform(click())
+        onView(withId(R.id.listView)).check(matches(isDisplayed()))
+        onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(0).perform(click())
+        onView(withId(R.id.ok)).perform(click())
+
+        // revert details
+        onView(withId(R.id.first)).perform(replaceText("Curly"))
+        onView(withId(R.id.last)).perform(replaceText("Stooge"))
+        onView(withId(R.id.email)).perform(replaceText("curly@stooges.com"))
+        onView(withId(R.id.username)).check(matches(not(isEnabled())))
+        onView(withId(R.id.password)).perform(replaceText("xyz987"))
+        onView(withId(R.id.confirm)).perform(replaceText("xyz987"))
+        onView(withId(R.id.spinner)).perform(click());
+        onData(anything()).atPosition(2).perform(click()); // Sales
+        onView(withId(R.id.save)).perform(click())
     }
 
     @Test
@@ -111,7 +136,7 @@ class EmployeeAdminTest {
         onView(withId(R.id.password)).perform(replaceText("abc123"))
         onView(withId(R.id.confirm)).perform(replaceText("abc123"))
         onView(withId(R.id.spinner)).perform(click());
-        onData(anything()).atPosition(DeptEnum.SHIPPING.ordinal).perform(click());
+        onData(anything()).atPosition(4).perform(click()); // +1, first entry is "--None Selected--"
         onView(withId(R.id.save)).check(matches(withText("Save")))
         onView(withId(R.id.save)).perform(click()) // save
 
@@ -127,7 +152,7 @@ class EmployeeAdminTest {
         onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(0).check(matches(isChecked()))
         onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(1).check(matches(isChecked()))
         onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(2).check(matches(not(isChecked())))
-        onView(withId(R.id.cancel)).perform(click())
+        Espresso.pressBack();
 
         // verify input data
         onView(withId(R.id.first)).check(matches(withText("Joe")))
@@ -137,7 +162,7 @@ class EmployeeAdminTest {
         onView(withId(R.id.username)).check(matches(withText("jstooge")))
         onView(withId(R.id.password)).check(matches(withText("abc123")))
         onView(withId(R.id.confirm)).check(matches(withText("abc123")))
-        onView(withId(R.id.spinner)).check(matches(withSpinnerText(containsString(DeptEnum.SHIPPING.toString()))));
+        onView(withId(R.id.spinner)).check(matches(withSpinnerText(containsString("Shipping"))));
         onView(withId(R.id.save)).check(matches(withText(R.string.update)))
         onView(withId(R.id.cancel)).perform(click())
 
@@ -164,7 +189,7 @@ class EmployeeAdminTest {
         onView(withId(R.id.password)).perform(replaceText("xyz987"))
         onView(withId(R.id.confirm)).perform(replaceText("xyz987"))
         onView(withId(R.id.spinner)).perform(click());
-        onData(anything()).atPosition(DeptEnum.ACCT.ordinal).perform(click());
+        onData(anything()).atPosition(1).perform(click());
         onView(withId(R.id.save)).perform(click())
 
         // verify new record
@@ -185,13 +210,15 @@ class EmployeeAdminTest {
         onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(1).check(matches(not((isChecked()))))
 
         onView(withId(R.id.ok)).perform(click())
-        pressBack()
+
+        onView(withId(R.id.cancel)).perform(click())
+
+        onView(withId(R.id.recyclerView)).perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(total, swipeLeft()))
     }
 
     @Test
     fun testInvalidEntry() {
         onView(withId(R.id.fab)).perform(click())
-
         onView(withId(R.id.save)).perform(click())
 
         onView(withText(R.string.error_invalid_data)).check(matches(isDisplayed()))
@@ -205,7 +232,7 @@ class EmployeeAdminTest {
         onView(withId(R.id.confirm)).perform(replaceText("ijk456"))
         onView(withId(R.id.save)).perform(click())
 
-        onView(withText(R.string.error)).check(matches(isDisplayed()))
+        onView(withText(R.string.error_password)).check(matches(isDisplayed()))
         onView(withId(android.R.id.button1)).perform(click())
     }
 

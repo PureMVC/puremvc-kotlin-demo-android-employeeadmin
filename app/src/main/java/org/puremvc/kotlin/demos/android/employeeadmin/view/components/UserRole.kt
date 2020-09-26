@@ -9,9 +9,9 @@
 package org.puremvc.kotlin.demos.android.employeeadmin.view.components
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,26 +19,73 @@ import android.widget.ArrayAdapter
 import android.widget.CheckedTextView
 import android.widget.LinearLayout
 import androidx.fragment.app.DialogFragment
+import kotlinx.coroutines.*
+import org.puremvc.kotlin.demos.android.employeeadmin.Application
 import org.puremvc.kotlin.demos.android.employeeadmin.databinding.UserRoleBinding
-import org.puremvc.kotlin.demos.android.employeeadmin.model.enumerator.RoleEnum
 import java.lang.ref.WeakReference
 
 class UserRole: DialogFragment() {
 
-    private val username by lazy { arguments?.getString("username") }
+    private var roles: HashMap<Long, String>? = null
 
-    private val roleEnumsArgs by lazy { arguments?.getParcelableArrayList<RoleEnum>("roleEnums") }
+    private var delegate: IUserRole? = null
 
-    private var roleEnums: ArrayList<RoleEnum>? = null
-
-    private val delegate by lazy { WeakReference(activity as IUserRole) }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        (activity?.application as Application).register(WeakReference(this))
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val binding = UserRoleBinding.inflate(inflater, container, false).apply {
 
+            MainScope().launch(handler) {
+                // UI data
+                val deferred1 = async { delegate?.findAllRoles() }
+
+                // User data
+                // arguments: previous role selection
+                arguments?.getSerializable("roles")?.let {
+                    roles = it as HashMap<Long, String>
+                }
+
+                // cache: restore role selection
+                savedInstanceState?.let {
+                    roles = it.getSerializable("roles") as HashMap<Long, String>
+                }
+
+                // network/database: existing user
+                var deferred2: Deferred<HashMap<Long, String>?>? = null
+                if (roles == null) { // cache miss
+                    arguments?.getLong("id")?.let { id ->
+                        deferred2 = async { delegate?.findRolesById(id) }
+                    }
+                }
+
+                // Await on both UI and User Data concurrent fetch
+                val list = deferred1.await() ?: hashMapOf()
+                if (roles == null) roles = deferred2?.await() ?: hashMapOf()
+
+                // Bind UI Data to UI
+                listView.adapter = ArrayAdapter<String>(activity!!, android.R.layout.simple_list_item_multiple_choice, list.map { it.value })
+
+                // Bind User Data to UI
+                roles?.forEach { (key, _) ->
+                    listView.setItemChecked(key.toInt() - 1, true)
+                }
+            }
+
+            // Event handlers
+            listView.setOnItemClickListener { parent, view, position, id ->
+                if (view?.findViewById<CheckedTextView>(android.R.id.text1)?.isChecked == true) {
+                    roles?.put(id + 1, parent.adapter.getItem(position).toString())
+                } else {
+                    roles?.remove(id + 1)
+                }
+            }
+
             ok.setOnClickListener {
                 dialog?.dismiss()
-                targetFragment?.onActivityResult(1, Activity.RESULT_OK, Intent().putParcelableArrayListExtra("roleEnums", roleEnums))
+                targetFragment?.onActivityResult(1, Activity.RESULT_OK, Intent().putExtra("roles", roles))
             }
 
             cancel.setOnClickListener {
@@ -46,25 +93,9 @@ class UserRole: DialogFragment() {
                 targetFragment?.onActivityResult(1, Activity.RESULT_CANCELED, null)
             }
 
-            username?.let { // existing user
-                delegate.get()?.getUserRoles(it)?.let { // existing roles
-                    roleEnums = it
-                }
-            }
-
-            roleEnumsArgs?.let { // if roles are passed from a previous selection
-                roleEnums = it.toMutableList() as ArrayList<RoleEnum> // copy array to avoid side effects
-            }
-
-            savedInstanceState?.let { // restore and override state if rotated
-                roleEnums = it.getParcelableArrayList<RoleEnum>("roleEnums") as ArrayList<RoleEnum>
-            }
-
-            if (roleEnums == null) roleEnums = arrayListOf()
-
-            listView.adapter = UserRoleAdapter(activity, RoleEnum.list())
         }
 
+        binding.executePendingBindings()
         return binding.root
     }
 
@@ -74,40 +105,32 @@ class UserRole: DialogFragment() {
     }
 
     override fun onSaveInstanceState(bundle: Bundle) {
-        bundle.putParcelableArrayList("roleEnums", roleEnums)
+        bundle.putSerializable("roles", roles) // cache
         super.onSaveInstanceState(bundle)
     }
 
-    private inner class UserRoleAdapter(context: Context?, data: ArrayList<RoleEnum>) : ArrayAdapter<RoleEnum>(context!!, 0, data as List<RoleEnum>) {
+    private fun fault(exception: Throwable) {
+        Log.d("UserRole", "Error: ${exception.localizedMessage}")
+        (activity as? EmployeeAdmin)?.fault(exception)
+    }
 
-        override fun getView(position: Int, convertView: View?, container: ViewGroup): View {
-            var view: View? = convertView
-            if (view == null) {
-                view = layoutInflater.inflate(android.R.layout.simple_list_item_multiple_choice, container, false)
-            }
+    private val handler = CoroutineExceptionHandler { _, exception -> fault(exception) }
 
-            val checkedTextView = view?.findViewById<CheckedTextView>(android.R.id.text1)
-            checkedTextView?.text = getItem(position)?.name
-
-            checkedTextView?.isChecked = roleEnums?.contains(getItem(position)) ?: false
-            checkedTextView?.tag = getItem(position)
-
-            checkedTextView?.setOnClickListener {
-                if (checkedTextView.isChecked) {
-                    checkedTextView.isChecked = false
-                    roleEnums?.remove(it.tag)
-                } else {
-                    checkedTextView.isChecked = true
-                    roleEnums?.add(it.tag as RoleEnum)
-                }
-            }
-            return view!!
-        }
-
+    fun setDelegate(delegate: IUserRole) {
+        this.delegate = delegate
     }
 
     interface IUserRole {
-        fun getUserRoles(username: String): ArrayList<RoleEnum>?
+        suspend fun findAllRoles(): HashMap<Long, String>?
+        suspend fun findRolesById(id: Long): HashMap<Long, String>?
     }
 
 }
+
+/*
+UI Pattern with Concurrency (1 & 2 in Parallel)
+    1. UI Data (hardcoded, Network/Database || Default)
+    2. User Data (Arguments/Cache, Network/Database on cache miss || Default) = field/variable
+    3. Bind UI & User Data to UI
+    4. Event Handlers
+ */

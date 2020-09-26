@@ -9,7 +9,7 @@
 package org.puremvc.kotlin.demos.android.employeeadmin
 
 import android.app.Application
-import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import java.lang.ref.WeakReference
 
 class Application: Application() {
@@ -21,8 +21,8 @@ class Application: Application() {
         facade.startup(this)
     }
 
-    fun registerActivity(activity: WeakReference<AppCompatActivity>) {
-        facade.registerActivity(activity)
+    fun register(fragment: WeakReference<Fragment>) {
+        facade.register(fragment)
     }
 
 }

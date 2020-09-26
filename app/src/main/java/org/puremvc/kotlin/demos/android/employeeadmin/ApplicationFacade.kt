@@ -8,8 +8,7 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin
 
-import androidx.appcompat.app.AppCompatActivity
-import org.puremvc.kotlin.demos.android.employeeadmin.controller.RegisterCommand
+import androidx.fragment.app.Fragment
 import org.puremvc.kotlin.demos.android.employeeadmin.controller.StartupCommand
 import org.puremvc.kotlin.multicore.interfaces.IFacade
 import org.puremvc.kotlin.multicore.patterns.facade.Facade
@@ -20,7 +19,6 @@ class ApplicationFacade(key: String) : Facade(key) {
     companion object {
 
         const val STARTUP: String = "startup"
-
         const val REGISTER: String = "register"
 
         fun getInstance(key: String): IFacade {
@@ -31,11 +29,10 @@ class ApplicationFacade(key: String) : Facade(key) {
     override fun initializeController() {
         super.initializeController()
         registerCommand(STARTUP) { StartupCommand() }
-        registerCommand(REGISTER) { RegisterCommand() }
     }
 
-    fun registerActivity(activity: WeakReference<AppCompatActivity>) {
-        sendNotification(REGISTER, activity)
+    fun register(fragment: WeakReference<Fragment>) {
+        sendNotification(REGISTER, fragment)
     }
 
     fun startup(application: Application) {
