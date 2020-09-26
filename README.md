@@ -1,6 +1,6 @@
 ## [PureMVC](http://puremvc.github.com/) [Kotlin](https://github.com/PureMVC/puremvc-kotlin-multicore-framework/wiki) Android Demo: Employee Admin
 
-This demo illustrates techniques for performing routine maintenance operations in a PureMVC-based [Android](https://en.wikipedia.org/wiki/Android_(operating_system)) application.
+This demo illustrates techniques for performing routine maintenance operations in a PureMVC-based [Android](https://en.wikipedia.org/wiki/Android_(operating_system)) application using SQLite.
 
 ## Screenshot
 ![PureMVC Kotlin Android Demo: Employee Admin](http://puremvc.org/pages/images/screenshots/PureMVC-Shot-Kotlin-Android-EmployeeAdmin.png)
@@ -15,6 +15,7 @@ Production - [Version 1.1](https://github.com/PureMVC/puremvc-kotlin-demo-androi
 ## Platforms / Technologies
 * [Android](https://en.wikipedia.org/wiki/Android_(operating_system))
 * [Kotlin](https://en.wikipedia.org/wiki/Kotlin_(programming_language))
+* [SQLite](https://en.wikipedia.org/wiki/SQLite)
 
 ## License
 * PureMVC Kotlin Demo - Employee Admin Android App - Copyright © 2020 [Saad Shams](https://www.linkedin.com/in/muizz/)
