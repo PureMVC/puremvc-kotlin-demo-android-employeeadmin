@@ -18,7 +18,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.*
 import org.mockito.runners.MockitoJUnitRunner
-import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserVO
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 
 @RunWith(MockitoJUnitRunner::class)
 class UserProxyTest {
@@ -48,13 +49,13 @@ class UserProxyTest {
     @Test
     fun testFindAll() {
         `when`(cursor.count).thenReturn(1)
-        `when`(cursor.getColumnIndex("id")).thenReturn(1)
+        `when`(cursor.getColumnIndexOrThrow("id")).thenReturn(1)
         `when`(cursor.getLong(1)).thenReturn(1)
 
-        `when`(cursor.getColumnIndex("first")).thenReturn(2)
+        `when`(cursor.getColumnIndexOrThrow("first")).thenReturn(2)
         `when`(cursor.getString(2)).thenReturn("Larry")
 
-        `when`(cursor.getColumnIndex("last")).thenReturn(3)
+        `when`(cursor.getColumnIndexOrThrow("last")).thenReturn(3)
         `when`(cursor.getString(3)).thenReturn("Stooge")
 
         runBlocking {
@@ -68,21 +69,21 @@ class UserProxyTest {
 
     @Test
     fun testFindById() {
-        `when`(cursor.getColumnIndex("id")).thenReturn(1)
+        `when`(cursor.getColumnIndexOrThrow("id")).thenReturn(1)
         `when`(cursor.getLong(1)).thenReturn(1)
-        `when`(cursor.getColumnIndex("username")).thenReturn(2)
+        `when`(cursor.getColumnIndexOrThrow("username")).thenReturn(2)
         `when`(cursor.getString(2)).thenReturn("lstooge")
-        `when`(cursor.getColumnIndex("first")).thenReturn(3)
+        `when`(cursor.getColumnIndexOrThrow("first")).thenReturn(3)
         `when`(cursor.getString(3)).thenReturn("Larry")
-        `when`(cursor.getColumnIndex("last")).thenReturn(4)
+        `when`(cursor.getColumnIndexOrThrow("last")).thenReturn(4)
         `when`(cursor.getString(4)).thenReturn("Stooge")
-        `when`(cursor.getColumnIndex("email")).thenReturn(5)
+        `when`(cursor.getColumnIndexOrThrow("email")).thenReturn(5)
         `when`(cursor.getString(5)).thenReturn("larry@stooges.com")
-        `when`(cursor.getColumnIndex("password")).thenReturn(6)
+        `when`(cursor.getColumnIndexOrThrow("password")).thenReturn(6)
         `when`(cursor.getString(6)).thenReturn("ijk456")
-        `when`(cursor.getColumnIndex("departmentId")).thenReturn(7)
+        `when`(cursor.getColumnIndexOrThrow("departmentId")).thenReturn(7)
         `when`(cursor.getLong(7)).thenReturn(0)
-        `when`(cursor.getColumnIndex("department_name")).thenReturn(8)
+        `when`(cursor.getColumnIndexOrThrow("department_name")).thenReturn(8)
         `when`(cursor.getString(8)).thenReturn("Accounting")
 
         runBlocking {
@@ -93,8 +94,8 @@ class UserProxyTest {
                 assertEquals("Stooge", user.last)
                 assertEquals("larry@stooges.com", user.email)
                 assertEquals("ijk456", user.password)
-                assertEquals(0L, user.department?.first)
-                assertEquals("Accounting", user.department?.second)
+                assertEquals(0L, user.department?.id)
+                assertEquals("Accounting", user.department?.name)
             }
         }
     }
@@ -102,7 +103,7 @@ class UserProxyTest {
     @Test
     fun testSave() {
         `when`(database.insertOrThrow(any(), any(), any())).thenReturn(1)
-        val user = UserVO(0, "jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", Pair(3, "Shipping"))
+        val user = User(0, "jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", Department(3, "Shipping"))
 
         runBlocking {
             val result = userProxy.save(user)
@@ -114,7 +115,7 @@ class UserProxyTest {
     @Test
     fun testUpdate() {
         `when`(database.update(any(), any(), any(), any())).thenReturn(1)
-        val user = UserVO(1, "jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", Pair(3, "Shipping"))
+        val user = User(1, "jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", Department(3, "Shipping"))
 
         runBlocking {
             val result = userProxy.update(user)
@@ -136,9 +137,9 @@ class UserProxyTest {
     @Test
     fun testFindAllDepartments() {
         `when`(cursor.count).thenReturn(1)
-        `when`(cursor.getColumnIndex("id")).thenReturn(1)
+        `when`(cursor.getColumnIndexOrThrow("id")).thenReturn(1)
         `when`(cursor.getLong(1)).thenReturn(0)
-        `when`(cursor.getColumnIndex("name")).thenReturn(2)
+        `when`(cursor.getColumnIndexOrThrow("name")).thenReturn(2)
         `when`(cursor.getString(2)).thenReturn("Accounting")
 
         runBlocking {

@@ -22,11 +22,12 @@ import androidx.fragment.app.DialogFragment
 import kotlinx.coroutines.*
 import org.puremvc.kotlin.demos.android.employeeadmin.Application
 import org.puremvc.kotlin.demos.android.employeeadmin.databinding.UserRoleBinding
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
 import java.lang.ref.WeakReference
 
 class UserRole: DialogFragment() {
 
-    private var roles: HashMap<Long, String>? = null
+    private var roles: ArrayList<Role>? = null
 
     private var delegate: IUserRole? = null
 
@@ -45,16 +46,16 @@ class UserRole: DialogFragment() {
                 // User data
                 // arguments: previous role selection
                 arguments?.getSerializable("roles")?.let {
-                    roles = it as HashMap<Long, String>
+                    roles = it as ArrayList<Role>
                 }
 
                 // cache: restore role selection
                 savedInstanceState?.let {
-                    roles = it.getSerializable("roles") as HashMap<Long, String>
+                    roles = it.getSerializable("roles") as ArrayList<Role>
                 }
 
                 // network/database: existing user
-                var deferred2: Deferred<HashMap<Long, String>?>? = null
+                var deferred2: Deferred<ArrayList<Role>?>? = null
                 if (roles == null) { // cache miss
                     arguments?.getLong("id")?.let { id ->
                         deferred2 = async { delegate?.findRolesById(id) }
@@ -62,24 +63,26 @@ class UserRole: DialogFragment() {
                 }
 
                 // Await on both UI and User Data concurrent fetch
-                val list = deferred1.await() ?: hashMapOf()
-                if (roles == null) roles = deferred2?.await() ?: hashMapOf()
+                val list = deferred1.await() ?: listOf()
+                if (roles == null) roles = deferred2?.await() ?: arrayListOf<Role>()
 
                 // Bind UI Data to UI
-                listView.adapter = ArrayAdapter<String>(activity!!, android.R.layout.simple_list_item_multiple_choice, list.map { it.value })
+                listView.adapter = ArrayAdapter<String>(activity!!, android.R.layout.simple_list_item_multiple_choice, list.map { it.name })
 
                 // Bind User Data to UI
-                roles?.forEach { (key, _) ->
-                    listView.setItemChecked(key.toInt() - 1, true)
+                roles?.forEach { role ->
+                    listView.setItemChecked(role.id.toInt() - 1, true)
                 }
             }
 
             // Event handlers
             listView.setOnItemClickListener { parent, view, position, id ->
                 if (view?.findViewById<CheckedTextView>(android.R.id.text1)?.isChecked == true) {
-                    roles?.put(id + 1, parent.adapter.getItem(position).toString())
+                    roles?.add(Role(id + 1, parent.adapter.getItem(position).toString()))
                 } else {
-                    roles?.remove(id + 1)
+                    roles?.removeIf {
+                        it.id == id + 1
+                    }
                 }
             }
 
@@ -121,8 +124,8 @@ class UserRole: DialogFragment() {
     }
 
     interface IUserRole {
-        suspend fun findAllRoles(): HashMap<Long, String>?
-        suspend fun findRolesById(id: Long): HashMap<Long, String>?
+        suspend fun findAllRoles(): List<Role>?
+        suspend fun findRolesById(id: Long): ArrayList<Role>?
     }
 
 }

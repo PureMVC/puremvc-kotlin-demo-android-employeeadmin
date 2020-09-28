@@ -10,7 +10,9 @@ package org.puremvc.kotlin.demos.android.employeeadmin.view
 
 import org.puremvc.kotlin.demos.android.employeeadmin.model.RoleProxy
 import org.puremvc.kotlin.demos.android.employeeadmin.model.UserProxy
-import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserVO
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 import org.puremvc.kotlin.demos.android.employeeadmin.view.components.UserForm
 import org.puremvc.kotlin.demos.android.employeeadmin.view.components.UserList
 import org.puremvc.kotlin.demos.android.employeeadmin.view.components.UserRole
@@ -37,7 +39,7 @@ class EmployeeAdminMediator(override var viewComponent: WeakReference<Any?>?): M
         }
     }
 
-    override suspend fun findAll(): ArrayList<UserVO>? {
+    override suspend fun findAll(): ArrayList<User>? {
         return userProxy?.findAll()
     }
 
@@ -45,11 +47,11 @@ class EmployeeAdminMediator(override var viewComponent: WeakReference<Any?>?): M
         return userProxy?.deleteById(id)
     }
 
-    override suspend fun findById(id: Long): UserVO? {
+    override suspend fun findById(id: Long): User? {
         return userProxy?.findById(id)
     }
 
-    override suspend fun save(user: UserVO, roles: HashMap<Long, String>?): Long?  {
+    override suspend fun save(user: User, roles: List<Role>?): Long?  {
         val id = userProxy?.save(user)
         roles?.let {
             roleProxy?.updateRolesByUserId(id!!, it)
@@ -57,7 +59,7 @@ class EmployeeAdminMediator(override var viewComponent: WeakReference<Any?>?): M
         return id
     }
 
-    override suspend fun update(user: UserVO, roles: HashMap<Long, String>?): Int? {
+    override suspend fun update(user: User, roles: List<Role>?): Int? {
         var id: Int? = null
         userProxy?.update(user)?.let {
             id = it
@@ -68,15 +70,15 @@ class EmployeeAdminMediator(override var viewComponent: WeakReference<Any?>?): M
         return id
     }
 
-    override suspend fun findAllDepartments(): HashMap<Long, String>? {
+    override suspend fun findAllDepartments(): List<Department>? {
         return userProxy?.findAllDepartments()
     }
 
-    override suspend fun findAllRoles(): HashMap<Long, String>? {
+    override suspend fun findAllRoles(): List<Role>? {
         return roleProxy?.findAll()
     }
 
-    override suspend fun findRolesById(id: Long): HashMap<Long, String>? {
+    override suspend fun findRolesById(id: Long): ArrayList<Role>? {
         return roleProxy?.findAllByUserId(id)
     }
 

@@ -24,13 +24,15 @@ import kotlinx.coroutines.*
 import org.puremvc.kotlin.demos.android.employeeadmin.Application
 import org.puremvc.kotlin.demos.android.employeeadmin.R
 import org.puremvc.kotlin.demos.android.employeeadmin.databinding.UserFormBinding
-import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserVO
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 import java.lang.Exception
 import java.lang.ref.WeakReference
 
 class UserForm: Fragment() {
 
-    private var roles: HashMap<Long, String>? = null
+    private var roles: List<Role>? = null
 
     private lateinit var navController: NavController
 
@@ -52,7 +54,7 @@ class UserForm: Fragment() {
 
             MainScope().launch(handler) {
 
-                var deferred1: Deferred<UserVO?>? = null
+                var deferred1: Deferred<User?>? = null
                 arguments?.getLong("id")?.let {
                     deferred1 = async { delegate?.findById(it) }
                 }
@@ -62,24 +64,20 @@ class UserForm: Fragment() {
                 userVO = deferred1?.await()
                 val depts = deferred2.await()
 
-                (spinner.adapter as? ArrayAdapter<String>)?.addAll(depts?.values ?: arrayListOf())
+                (spinner.adapter as? ArrayAdapter<String>)?.addAll(depts?.map { it.name } ?: arrayListOf())
 
                 userVO?.department?.let {
-                    spinner.setSelection(it.first.toInt())
+                    spinner.setSelection(it.id.toInt())
                 }
             }
 
             save.setOnClickListener {
-                val user = UserVO(userVO?.id ?: 0, username.text.toString(), first.text.toString(), last.text.toString(),
-                    email.text.toString(), password.text.toString(), Pair(spinner.selectedItemPosition.toLong(), spinner.selectedItem.toString()))
+                val user = User(userVO?.id ?: 0, username.text.toString(), first.text.toString(), last.text.toString(),
+                    email.text.toString(), password.text.toString(), Department(spinner.selectedItemPosition.toLong(), spinner.selectedItem.toString())
+                )
 
-                if (user.password != confirm.text.toString()) {
-                    fault(Exception(getString(R.string.error_password)))
-                    return@setOnClickListener
-                }
-
-                if (!user.isValid()!!) {
-                    fault(Exception(getString(R.string.error_invalid_data)))
+                user.validate(confirm.text.toString())?.let {
+                    fault(Exception(it))
                     return@setOnClickListener
                 }
 
@@ -131,7 +129,7 @@ class UserForm: Fragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK) {
-            roles = data?.extras?.getSerializable("roles") as HashMap<Long, String>
+            roles = data?.extras?.getSerializable("roles") as List<Role>
         } else {
             roles = null
         }
@@ -151,10 +149,10 @@ class UserForm: Fragment() {
     }
 
     interface IUserForm {
-        suspend fun findById(id: Long): UserVO?
-        suspend fun save(user: UserVO, roles: HashMap<Long, String>?): Long?
-        suspend fun update(user: UserVO, roles: HashMap<Long, String>?): Int?
-        suspend fun findAllDepartments(): HashMap<Long, String>?
+        suspend fun findById(id: Long): User?
+        suspend fun save(user: User, roles: List<Role>?): Long?
+        suspend fun update(user: User, roles: List<Role>?): Int?
+        suspend fun findAllDepartments(): List<Department>?
     }
 
 }

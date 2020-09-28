@@ -16,7 +16,7 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.puremvc.kotlin.demos.android.employeeadmin.model.UserProxy
-import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserVO
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 
 class UserProxyTest {
 
@@ -60,7 +60,7 @@ class UserProxyTest {
     @Test
     fun testSaveAndFindByIdAndDelete() {
         runBlocking {
-            val joe = UserVO(0, "jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", Pair(4, "Shipping"))
+            val joe = User(0, "jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", Pair(4, "Shipping"))
             val id = userProxy.save(joe)
             val user = userProxy.findById(id)!!
 
@@ -82,10 +82,10 @@ class UserProxyTest {
     @Test
     fun testUpdate() { // delete manually to reset state on failure
         runBlocking {
-            val joe = UserVO(0, "jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", Pair(4, "Shipping")) // insert new
+            val joe = User(0, "jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", Pair(4, "Shipping")) // insert new
             val id = userProxy.save(joe)
 
-            userProxy.update(UserVO(id, "jstooge", "Joe1", "Stooge1", "joe1@stooges.com", "abc123", Pair(5, "Quality Control")))
+            userProxy.update(User(id, "jstooge", "Joe1", "Stooge1", "joe1@stooges.com", "abc123", Pair(5, "Quality Control")))
 
             val user = userProxy.findById(id)!!
 

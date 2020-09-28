@@ -12,6 +12,7 @@ import android.content.ContentValues
 import android.database.sqlite.SQLiteOpenHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
 import org.puremvc.kotlin.multicore.patterns.proxy.Proxy
 import java.lang.Exception
 
@@ -21,40 +22,40 @@ class RoleProxy(private val connection: SQLiteOpenHelper): Proxy(NAME, null) {
         const val NAME: String = "RoleProxy"
     }
 
-    suspend fun findAll(): HashMap<Long, String>? = withContext(Dispatchers.IO) {
-        var roles: HashMap<Long, String>? = null
+    suspend fun findAll(): List<Role>? = withContext(Dispatchers.IO) {
+        var roles: ArrayList<Role>? = null
         connection.readableDatabase.query("role", null, null, null, null, null, null).use { cursor ->
-            if (cursor.count > 0) roles = HashMap()
+            if (cursor.count > 0) roles = ArrayList()
             while (cursor.moveToNext()) {
-                roles?.put(cursor.getLong(cursor.getColumnIndex("id")), cursor.getString(cursor.getColumnIndex("name")))
+                roles?.add(Role(cursor.getLong(cursor.getColumnIndexOrThrow("id")), cursor.getString(cursor.getColumnIndexOrThrow("name"))))
             }
         }
         return@withContext roles
     }
 
-    suspend fun findAllByUserId(id: Long): HashMap<Long, String>? = withContext(Dispatchers.IO) {
-        var roles: HashMap<Long, String>? = null
-        connection.readableDatabase.rawQuery("SELECT id, name FROM role INNER JOIN employee_role ON role.id = employee_role.role_id WHERE employee_id = ?", arrayOf(id.toString())).use { cursor ->
-            if (cursor.count > 0) roles = HashMap()
+    suspend fun findAllByUserId(id: Long): ArrayList<Role>? = withContext(Dispatchers.IO) {
+        var roles: ArrayList<Role>? = null
+        connection.readableDatabase.rawQuery("SELECT id, name FROM role INNER JOIN user_role ON role.id = user_role.role_id WHERE user_id = ?", arrayOf(id.toString())).use { cursor ->
+            if (cursor.count > 0) roles = ArrayList()
             while (cursor.moveToNext()) {
-                roles?.put(cursor.getLong(cursor.getColumnIndex("id")), cursor.getString(cursor.getColumnIndex("name")))
+                roles?.add(Role(cursor.getLong(cursor.getColumnIndexOrThrow("id")), cursor.getString(cursor.getColumnIndexOrThrow("name"))))
             }
         }
         return@withContext roles
     }
 
-    suspend fun updateRolesByUserId(id: Long, roles: HashMap<Long, String>): ArrayList<Long>? = withContext(Dispatchers.IO) {
+    suspend fun updateRolesByUserId(id: Long, roles: List<Role>): ArrayList<Long>? = withContext(Dispatchers.IO) {
         var ids: ArrayList<Long>? = null
         val database = connection.writableDatabase
         try {
             database.beginTransaction()
-            database.delete("employee_role", "employee_id = ?", arrayOf(id.toString()))
+            database.delete("user_role", "user_id = ?", arrayOf(id.toString()))
             if (roles.count() > 0) ids = ArrayList()
             roles.forEach { role ->
                 val values = ContentValues()
-                values.put("employee_id", id)
-                values.put("role_id", role.key)
-                ids?.add(database.insertOrThrow("employee_role", null, values))
+                values.put("user_id", id)
+                values.put("role_id", role.id)
+                ids?.add(database.insertOrThrow("user_role", null, values))
             }
             database.setTransactionSuccessful()
         } catch (exception: Exception) {

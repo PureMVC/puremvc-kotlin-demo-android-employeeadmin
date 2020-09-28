@@ -12,6 +12,4 @@
     <string name="ok">Ok</string>
     <string name="cancel">Cancel</string>
     <string name="error">Error</string>
-    <string name="error_password">Your password and confirmation password do not match.</string>
-    <string name="error_invalid_data">Invalid Form Data.</string>
 </resources>

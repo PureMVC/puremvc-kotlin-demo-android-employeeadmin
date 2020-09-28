@@ -33,13 +33,13 @@ import org.puremvc.kotlin.demos.android.employeeadmin.Application
 import org.puremvc.kotlin.demos.android.employeeadmin.R
 import org.puremvc.kotlin.demos.android.employeeadmin.databinding.UserListBinding
 import org.puremvc.kotlin.demos.android.employeeadmin.databinding.UserListItemBinding
-import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserVO
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 import java.lang.Exception
 import java.lang.ref.WeakReference
 
 class UserList: Fragment() {
 
-    private var users: ArrayList<UserVO>? = null
+    private var users: ArrayList<User>? = null
 
     private var delegate: IUserList? = null
 
@@ -59,14 +59,14 @@ class UserList: Fragment() {
             }
 
             savedInstanceState?.let {
-                users = it.getSerializable("users") as ArrayList<UserVO>
+                users = it.getSerializable("users") as ArrayList<User>
             }
 
             users?.let {
                 recyclerView.swapAdapter(UserListAdapter(it), false)
             } ?: run {
                 MainScope().launch(handler) {
-                    users = delegate?.findAll() ?: arrayListOf()
+                    users = delegate?.findAll() ?: arrayListOf<User>()
                     recyclerView.swapAdapter(UserListAdapter(users!!), false)
                 }
             }
@@ -99,7 +99,7 @@ class UserList: Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         navController = Navigation.findNavController(view)
-        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<UserVO>("userVO")?.observe(viewLifecycleOwner,
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<User>("userVO")?.observe(viewLifecycleOwner,
             Observer { userVO ->
                 users!!.forEachIndexed { index, _ ->
                     if (users!![index].id == userVO.id) {
@@ -158,7 +158,7 @@ class UserList: Fragment() {
     }
 
     // Adapter
-    private class UserListAdapter(val userVOs: ArrayList<UserVO>): RecyclerView.Adapter<UserListAdapter.UserViewHolder>() {
+    private class UserListAdapter(val userVOs: ArrayList<User>): RecyclerView.Adapter<UserListAdapter.UserViewHolder>() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
             val binding = UserListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -176,7 +176,7 @@ class UserList: Fragment() {
         // ViewHolder
         private class UserViewHolder(val userListItem: UserListItemBinding, val navController: NavController): RecyclerView.ViewHolder(userListItem.root) {
 
-            fun bind(user: UserVO) {
+            fun bind(user: User) {
                 userListItem.fullname = user.toString()
                 userListItem.listener = View.OnClickListener {
                     navController.navigate(R.id.action_userList_to_userForm, bundleOf("id" to user.id))
@@ -187,7 +187,7 @@ class UserList: Fragment() {
     }
 
     interface IUserList {
-        suspend fun findAll(): ArrayList<UserVO>?
+        suspend fun findAll(): ArrayList<User>?
         suspend fun deleteById(id: Long): Int?
     }
 

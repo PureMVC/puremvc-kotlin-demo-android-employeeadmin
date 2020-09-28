@@ -17,6 +17,7 @@ import org.junit.Test
 import org.junit.Assert.*
 import org.junit.Before
 import org.mockito.Mockito.*
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
 
 class RoleProxyTest {
 
@@ -45,9 +46,9 @@ class RoleProxyTest {
     @Test
     fun testFindAll() {
         `when`(cursor.count).thenReturn(1)
-        `when`(cursor.getColumnIndex("id")).thenReturn(1)
+        `when`(cursor.getColumnIndexOrThrow("id")).thenReturn(1)
         `when`(cursor.getInt(1)).thenReturn(1)
-        `when`(cursor.getColumnIndex("name")).thenReturn(2)
+        `when`(cursor.getColumnIndexOrThrow("name")).thenReturn(2)
         `when`(cursor.getString(2)).thenReturn("Administrator")
 
         runBlocking {
@@ -59,9 +60,9 @@ class RoleProxyTest {
 
     @Test
     fun testFindAllByUserId() {
-        `when`(cursor.getColumnIndex("id")).thenReturn(1)
+        `when`(cursor.getColumnIndexOrThrow("id")).thenReturn(1)
         `when`(cursor.getInt(1)).thenReturn(0)
-        `when`(cursor.getColumnIndex("name")).thenReturn(2)
+        `when`(cursor.getColumnIndexOrThrow("name")).thenReturn(2)
         `when`(cursor.getString(2)).thenReturn("Administrator")
 
         runBlocking {
@@ -76,7 +77,7 @@ class RoleProxyTest {
     fun testUpdateRolesByUserId() {
         `when`(database.insertOrThrow(any(), any(), any())).thenReturn(1).thenReturn(2)
         runBlocking {
-            val ids = roleProxy.updateRolesByUserId(1, hashMapOf(1L to "Administrator", 2L to "Accounts Payable"))
+            val ids = roleProxy.updateRolesByUserId(1, arrayListOf(Role(1L, "Administrator"), Role(2L, "Accounts Payable")))
 
             assertEquals(2, ids!!.size)
             assertEquals(1, ids[0])
