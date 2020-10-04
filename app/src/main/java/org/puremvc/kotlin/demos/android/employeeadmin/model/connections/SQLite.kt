@@ -4,6 +4,8 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 
 class SQLite(context: Context, name: String, factory: SQLiteDatabase.CursorFactory?, version: Int) : SQLiteOpenHelper(context, name, factory, version) {
 
@@ -27,7 +29,7 @@ class SQLite(context: Context, name: String, factory: SQLiteDatabase.CursorFacto
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
-        Log.d("StartupCommand", "onUpgrade: $oldVersion $newVersion")
+        Log.d("SQLite", "onUpgrade: $oldVersion $newVersion")
     }
     
 }
