@@ -55,9 +55,7 @@ class UserForm: Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val binding = UserFormBinding.inflate(inflater, container, false).apply {
-            btnSave.setOnClickListener {
-                if (username.isEnabled) save() else update()
-            }
+            btnSave.setOnClickListener { save() }
             btnCancel.setOnClickListener { cancel() }
             btnRoles.setOnClickListener { selectRoles() }
         }
@@ -100,6 +98,17 @@ class UserForm: Fragment() {
         return binding.root
     }
 
+    private fun selectRoles() {
+        val userRole = UserRole()
+        arguments?.getLong("id")?.let { id ->
+            userRole.arguments = bundleOf("id" to (id), "roles" to roles)
+        } ?: run {
+            userRole.arguments = bundleOf( "roles" to roles)
+        }
+        userRole.setTargetFragment(this@UserForm, 1)
+        userRole.show(parentFragmentManager.beginTransaction(), "dialog")
+    }
+
     private fun save() {
         val user = User(arguments?.getLong("id"), username.text.toString(), first.text.toString(), last.text.toString(),
                 email.text.toString(), password.text.toString(), Department(spinner.selectedItemPosition.toLong(), spinner.selectedItem.toString()))
@@ -113,33 +122,10 @@ class UserForm: Fragment() {
         lifecycleScope.launch(handler) {
             var id: Long? = null
             withContext(Dispatchers.IO) {
-                id = delegate?.save(user, roles)
+                if (arguments?.getLong("id") == null) id = delegate?.save(user, roles) else delegate?.update(user, roles)
 
                 withContext(Dispatchers.Main) {
-                    if(username.isEnabled) user.id = id
-                    navController.previousBackStackEntry?.savedStateHandle?.set("user", user)
-                    navController.popBackStack()
-                }
-            }
-        }.invokeOnCompletion {
-            IdlingResource.decrement()
-        }
-    }
-
-    private fun update() {
-        val user = User(arguments?.getLong("id"), username.text.toString(), first.text.toString(), last.text.toString(),
-                email.text.toString(), password.text.toString(), Department(spinner.selectedItemPosition.toLong(), spinner.selectedItem.toString()))
-
-        user.validate(confirm.text.toString())?.let {
-            fault(null, Exception(it))
-            return
-        }
-
-        lifecycleScope.launch(handler) {
-            withContext(Dispatchers.IO) {
-                delegate?.update(user, roles)
-
-                withContext(Dispatchers.Main) {
+                    if (arguments?.getLong("id") == null) user.id = id
                     navController.previousBackStackEntry?.savedStateHandle?.set("user", user)
                     navController.popBackStack()
                 }
@@ -151,17 +137,6 @@ class UserForm: Fragment() {
 
     private fun cancel() {
         navController.navigate(R.id.action_userForm_to_userList)
-    }
-
-    private fun selectRoles() {
-        val userRole = UserRole()
-        arguments?.getLong("id")?.let { id ->
-            userRole.arguments = bundleOf("id" to (id), "roles" to roles)
-        } ?: run {
-            userRole.arguments = bundleOf( "roles" to roles)
-        }
-        userRole.setTargetFragment(this@UserForm, 1)
-        userRole.show(parentFragmentManager.beginTransaction(), "dialog")
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

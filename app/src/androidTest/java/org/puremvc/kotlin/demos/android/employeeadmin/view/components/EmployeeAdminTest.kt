@@ -44,13 +44,13 @@ class EmployeeAdminTest {
     }
 
     @Test
-    fun testList() { // ok
+    fun testList() {
         onView(withId(R.id.recyclerView)).check(matches(isDisplayed()))
         onView(withId(R.id.recyclerView)).check { view, _ -> assertThat((view as RecyclerView).adapter?.itemCount, equalTo(3)) }
     }
 
     @Test
-    fun testLarry() { // ok
+    fun testLarry() {
         onView(withId(R.id.recyclerView)).perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(0, click()))
 
         onView(withId(R.id.first)).check(matches(withText("Larry")))
@@ -230,7 +230,7 @@ class EmployeeAdminTest {
     }
 
     @Test
-    fun testInvalidEntry() { // ok
+    fun testInvalidEntry() {
         onView(withId(R.id.fab)).perform(click())
         onView(withId(R.id.btnSave)).perform(click())
 
@@ -239,7 +239,7 @@ class EmployeeAdminTest {
     }
 
     @Test
-    fun testInvalidPassword() { // ok
+    fun testInvalidPassword() {
         onView(withId(R.id.fab)).perform(click())
         onView(withId(R.id.first)).perform(replaceText("Shemp"))
         onView(withId(R.id.last)).perform(replaceText("Stooge"))
