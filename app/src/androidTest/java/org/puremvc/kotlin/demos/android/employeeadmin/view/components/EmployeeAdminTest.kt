@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso
 import androidx.test.espresso.Espresso.onData
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.contrib.RecyclerViewActions
@@ -19,6 +20,8 @@ import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner
 import org.hamcrest.Matchers.*
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -30,14 +33,24 @@ class EmployeeAdminTest {
     @get: Rule
     val activityRule = ActivityScenarioRule(EmployeeAdmin::class.java)
 
+    @Before
+    fun setUp() {
+        IdlingRegistry.getInstance().register(IdlingResource.counter)
+    }
+
+    @After
+    fun tearDown() {
+        IdlingRegistry.getInstance().unregister(IdlingResource.counter)
+    }
+
     @Test
-    fun testList() {
+    fun testList() { // ok
         onView(withId(R.id.recyclerView)).check(matches(isDisplayed()))
         onView(withId(R.id.recyclerView)).check { view, _ -> assertThat((view as RecyclerView).adapter?.itemCount, equalTo(3)) }
     }
 
     @Test
-    fun testLarry() {
+    fun testLarry() { // ok
         onView(withId(R.id.recyclerView)).perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(0, click()))
 
         onView(withId(R.id.first)).check(matches(withText("Larry")))
@@ -49,7 +62,7 @@ class EmployeeAdminTest {
         onView(withId(R.id.confirm)).check(matches(withText("ijk456")))
         onView(withId(R.id.spinner)).check(matches(withSpinnerText("Accounting")))
 
-        onView(withId(R.id.cancel)).perform(click())
+        onView(withId(R.id.btnCancel)).perform(click())
         onView(withId(R.id.recyclerView)).check(matches(isDisplayed()))
     }
 
@@ -58,10 +71,10 @@ class EmployeeAdminTest {
         onView(withId(R.id.recyclerView)).perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(1, click()))
 
         // update roles
-        onView(withId(R.id.rolesButton)).perform(click())
+        onView(withId(R.id.btnRoles)).perform(click())
         onView(withId(R.id.listView)).check(matches(isDisplayed()))
         onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(0).perform(click())
-        onView(withId(R.id.ok)).perform(click())
+        onView(withId(R.id.btnOk)).perform(click())
 
         // update details
         onView(withId(R.id.first)).perform(replaceText("Curly1"))
@@ -72,15 +85,15 @@ class EmployeeAdminTest {
         onView(withId(R.id.confirm)).perform(replaceText("abc123"))
         onView(withId(R.id.spinner)).perform(click());
         onData(anything()).atPosition(1).perform(click()); // Accounting
-        onView(withId(R.id.save)).perform(click())
+        onView(withId(R.id.btnSave)).perform(click())
 
         // verify
         onView(withId(R.id.recyclerView)).perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(1, click()))
 
         // verify roles
-        onView(withId(R.id.rolesButton)).perform(click())
+        onView(withId(R.id.btnRoles)).perform(click())
         onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(0).check(matches(isChecked()))
-        onView(withId(R.id.cancel)).perform(click())
+        onView(withId(R.id.btnCancel)).perform(click())
 
         // verify details
         onView(withId(R.id.first)).check(matches(withText("Curly1")))
@@ -92,10 +105,10 @@ class EmployeeAdminTest {
         onView(withId(R.id.spinner)).check(matches(withSpinnerText(containsString("Accounting"))));
 
         // revert roles
-        onView(withId(R.id.rolesButton)).perform(click())
+        onView(withId(R.id.btnRoles)).perform(click())
         onView(withId(R.id.listView)).check(matches(isDisplayed()))
         onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(0).perform(click())
-        onView(withId(R.id.ok)).perform(click())
+        onView(withId(R.id.btnOk)).perform(click())
 
         // revert details
         onView(withId(R.id.first)).perform(replaceText("Curly"))
@@ -106,7 +119,7 @@ class EmployeeAdminTest {
         onView(withId(R.id.confirm)).perform(replaceText("xyz987"))
         onView(withId(R.id.spinner)).perform(click());
         onData(anything()).atPosition(2).perform(click()); // Sales
-        onView(withId(R.id.save)).perform(click())
+        onView(withId(R.id.btnSave)).perform(click())
     }
 
     @Test
@@ -116,16 +129,16 @@ class EmployeeAdminTest {
         onView(withId(R.id.fab)).perform(click()) // new user
 
         // select roles
-        onView(withId(R.id.rolesButton)).perform(click())
+        onView(withId(R.id.btnRoles)).perform(click())
         onView(withId(R.id.listView)).check(matches(isDisplayed()))
         onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(0).perform(click())
         onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(1).perform(click())
-        onView(withId(R.id.ok)).perform(click())
+        onView(withId(R.id.btnOk)).perform(click())
 
-        onView(withId(R.id.rolesButton)).perform(click()) // click roles again
+        onView(withId(R.id.btnRoles)).perform(click()) // click roles again
         onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(0).check(matches(isChecked())) // verify the previous selection
         onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(1).check(matches(isChecked()))
-        onView(withId(R.id.ok)).perform(click())
+        onView(withId(R.id.btnOk)).perform(click())
 
         // enter details
         onView(withId(R.id.first)).perform(replaceText("Joe"))
@@ -137,8 +150,8 @@ class EmployeeAdminTest {
         onView(withId(R.id.confirm)).perform(replaceText("abc123"))
         onView(withId(R.id.spinner)).perform(click());
         onData(anything()).atPosition(4).perform(click()); // +1, first entry is "--None Selected--"
-        onView(withId(R.id.save)).check(matches(withText("Save")))
-        onView(withId(R.id.save)).perform(click()) // save
+        onView(withId(R.id.btnSave)).check(matches(withText("Save")))
+        onView(withId(R.id.btnSave)).perform(click()) // save
 
         // user list view
         onView(withId(R.id.recyclerView)).check(matches(isDisplayed()))
@@ -148,7 +161,7 @@ class EmployeeAdminTest {
         onView(withId(R.id.recyclerView)).perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(total, click()))
 
         // verify roles
-        onView(withId(R.id.rolesButton)).perform(click())
+        onView(withId(R.id.btnRoles)).perform(click())
         onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(0).check(matches(isChecked()))
         onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(1).check(matches(isChecked()))
         onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(2).check(matches(not(isChecked())))
@@ -163,8 +176,8 @@ class EmployeeAdminTest {
         onView(withId(R.id.password)).check(matches(withText("abc123")))
         onView(withId(R.id.confirm)).check(matches(withText("abc123")))
         onView(withId(R.id.spinner)).check(matches(withSpinnerText(containsString("Shipping"))));
-        onView(withId(R.id.save)).check(matches(withText(R.string.update)))
-        onView(withId(R.id.cancel)).perform(click())
+        onView(withId(R.id.btnSave)).check(matches(withText(R.string.update)))
+        onView(withId(R.id.btnCancel)).perform(click())
 
         // user list view
         onView(withId(R.id.recyclerView)).check(matches(isDisplayed()))
@@ -190,47 +203,53 @@ class EmployeeAdminTest {
         onView(withId(R.id.confirm)).perform(replaceText("xyz987"))
         onView(withId(R.id.spinner)).perform(click());
         onData(anything()).atPosition(1).perform(click());
-        onView(withId(R.id.save)).perform(click())
+        onView(withId(R.id.btnSave)).perform(click())
 
         // verify new record
         onView(withId(R.id.recyclerView)).check { view, _ -> assertThat((view as RecyclerView).adapter?.itemCount, equalTo(total + 1)) }
         onView(withId(R.id.recyclerView)).perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(total, click()))
 
         // select roles
-        onView(withId(R.id.rolesButton)).perform(click())
+        onView(withId(R.id.btnRoles)).perform(click())
         onView(withId(R.id.listView)).check(matches(isDisplayed()))
         onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(0).perform(click())
-        onView(withId(R.id.ok)).perform(click())
-        onView(withId(R.id.save)).perform(click())
+        onView(withId(R.id.btnOk)).perform(click())
+        onView(withId(R.id.btnSave)).perform(click())
 
         // verify roles
         onView(withId(R.id.recyclerView)).perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(total, click()))
-        onView(withId(R.id.rolesButton)).perform(click())
+        onView(withId(R.id.btnRoles)).perform(click())
         onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(0).check(matches(isChecked()))
         onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(1).check(matches(not((isChecked()))))
 
-        onView(withId(R.id.ok)).perform(click())
+        onView(withId(R.id.btnOk)).perform(click())
 
-        onView(withId(R.id.cancel)).perform(click())
+        onView(withId(R.id.btnCancel)).perform(click())
 
         onView(withId(R.id.recyclerView)).perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(total, swipeLeft()))
     }
 
     @Test
-    fun testInvalidEntry() {
+    fun testInvalidEntry() { // ok
         onView(withId(R.id.fab)).perform(click())
-        onView(withId(R.id.save)).perform(click())
+        onView(withId(R.id.btnSave)).perform(click())
 
         onView(withText(R.string.error_invalid_data)).check(matches(isDisplayed()))
         onView(withId(android.R.id.button1)).perform(click())
     }
 
     @Test
-    fun testInvalidPassword() {
+    fun testInvalidPassword() { // ok
         onView(withId(R.id.fab)).perform(click())
+        onView(withId(R.id.first)).perform(replaceText("Shemp"))
+        onView(withId(R.id.last)).perform(replaceText("Stooge"))
+        onView(withId(R.id.email)).perform(replaceText("shemp@stooges.com"))
+        onView(withId(R.id.username)).perform(replaceText("sshemp"))
         onView(withId(R.id.password)).perform(replaceText("abc123"))
         onView(withId(R.id.confirm)).perform(replaceText("ijk456"))
-        onView(withId(R.id.save)).perform(click())
+        onView(withId(R.id.spinner)).perform(click());
+        onData(anything()).atPosition(1).perform(click());
+        onView(withId(R.id.btnSave)).perform(click())
 
         onView(withText(R.string.error_password)).check(matches(isDisplayed()))
         onView(withId(android.R.id.button1)).perform(click())

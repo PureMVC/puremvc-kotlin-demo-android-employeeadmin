@@ -21,6 +21,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.navigation.findNavController
@@ -36,6 +37,12 @@ import org.puremvc.kotlin.demos.android.employeeadmin.databinding.UserListItemBi
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 import java.lang.Exception
 import java.lang.ref.WeakReference
+import kotlin.coroutines.CoroutineContext
+
+interface IUserList {
+    fun findAll(): ArrayList<User>?
+    fun deleteById(id: Long?): Int?
+}
 
 class UserList: Fragment() {
 
@@ -50,80 +57,90 @@ class UserList: Fragment() {
         (activity?.application as Application).register(WeakReference(this))
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val binding = UserListBinding.inflate(inflater, container, false).apply {
-
-            recyclerView.apply {
-                layoutManager = LinearLayoutManager(activity)
-                adapter = UserListAdapter(arrayListOf())
-            }
-
-            savedInstanceState?.let {
-                users = it.getSerializable("users") as ArrayList<User>
-            }
-
-            users?.let {
-                recyclerView.swapAdapter(UserListAdapter(it), false)
-            } ?: run {
-                MainScope().launch(handler) {
-                    users = delegate?.findAll() ?: arrayListOf<User>()
-                    recyclerView.swapAdapter(UserListAdapter(users!!), false)
-                }
-            }
+            fab.setOnClickListener { save() }
 
             ItemTouchHelper(object : SwipeHelper(recyclerView.context) {
                 override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                    MainScope().launch {
-                        try {
-                            delegate?.deleteById(users!![viewHolder.adapterPosition].id)?.let {
-                                users!!.removeAt(viewHolder.adapterPosition)
-                                recyclerView.adapter?.notifyItemRemoved(viewHolder.adapterPosition)
-                            }
-                        } catch (exception: Exception) {
-                            recyclerView.adapter?.notifyDataSetChanged()
-                            fault(exception)
-                        }
-                    }
+                    deleteById(viewHolder.adapterPosition)
                 }
             }).attachToRecyclerView(recyclerView)
-
-            fab.setOnClickListener {
-                navController.navigate(R.id.action_userList_to_userForm)
-            }
-
         }
+
+        savedInstanceState?.let { // User data: Cache
+            val obj = it.getSerializable("users")
+            if (obj is List<*>) {
+                users = ArrayList(obj.filterIsInstance<User>())
+            }
+        }
+
+        users?.let { // Cache hit
+            binding.recyclerView.swapAdapter(UserListAdapter(it), false)
+        } ?: run { // Cache miss
+            IdlingResource.increment()
+            lifecycleScope.launch(handler) {
+                withContext(Dispatchers.IO) {
+                    users = delegate?.findAll()
+                }
+            }.invokeOnCompletion {
+                binding.recyclerView.swapAdapter(UserListAdapter(users ?: arrayListOf()), false)
+                IdlingResource.decrement()
+            }
+        }
+
         return binding.root
+    }
+
+    private fun save() {
+        navController.navigate(R.id.action_userList_to_userForm)
+    }
+
+    private fun deleteById(index: Int) {
+        lifecycleScope.launch(handler) {
+            withContext(Dispatchers.IO) {
+                try {
+                    delegate?.deleteById(users?.getOrNull(index)?.id)
+                } catch (exception: Exception) {
+                    withContext(Dispatchers.Main) {
+                        recyclerView.adapter?.notifyDataSetChanged()
+                        fault(null, exception) // throw exception
+                    }
+                }
+            }
+        }.invokeOnCompletion {
+            users?.removeAt(index)
+            recyclerView.adapter?.notifyItemRemoved(index)
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         navController = Navigation.findNavController(view)
-        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<User>("userVO")?.observe(viewLifecycleOwner,
-            Observer { userVO ->
-                users!!.forEachIndexed { index, _ ->
-                    if (users!![index].id == userVO.id) {
-                        users!![index] = userVO
-                        return@Observer
-                    }
+
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<User>("user")?.observe(viewLifecycleOwner, Observer { user ->
+            users?.forEachIndexed { index, _ ->
+                if (users?.get(index)?.id == user.id) {
+                    users?.set(index, user)
+                    return@Observer
                 }
-                users!!.add(userVO)
-                recyclerView.adapter?.notifyDataSetChanged()
             }
-        )
+            users?.add(user)
+            recyclerView.adapter?.notifyDataSetChanged()
+        })
     }
 
     override fun onSaveInstanceState(bundle: Bundle) {
-        bundle.putSerializable("users", users)
         super.onSaveInstanceState(bundle)
+        bundle.putSerializable("users", users)
     }
 
-    private fun fault(exception: Throwable) {
-        Log.d("UserList", "Error: ${exception.localizedMessage}")
+    private fun fault(context: CoroutineContext?, exception: Throwable) {
+        Log.d("UserList", "Error: $context ${exception.localizedMessage}")
         (activity as? EmployeeAdmin)?.fault(exception)
     }
 
-    private val handler = CoroutineExceptionHandler { _, exception -> fault(exception) }
+    private val handler = CoroutineExceptionHandler { context, exception -> fault(context, exception) }
 
     fun setDelegate(delegate: IUserList) {
         this.delegate = delegate
@@ -184,11 +201,6 @@ class UserList: Fragment() {
             }
 
         }
-    }
-
-    interface IUserList {
-        suspend fun findAll(): ArrayList<User>?
-        suspend fun deleteById(id: Long): Int?
     }
 
 }

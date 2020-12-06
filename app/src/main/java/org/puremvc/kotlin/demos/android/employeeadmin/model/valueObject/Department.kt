@@ -12,4 +12,4 @@ import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
-class Department(var id: Long, var name: String?): Parcelable
+class Department(var id: Long?, var name: String?): Parcelable

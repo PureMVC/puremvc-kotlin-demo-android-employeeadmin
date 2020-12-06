@@ -2,7 +2,7 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
-        <variable name="userVO" type="org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User" />
+        <variable name="user" type="org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="match_parent">
@@ -37,7 +37,7 @@
                 android:hint="@string/first"
                 android:importantForAutofill="no"
                 android:inputType="text"
-                android:text="@{userVO.first}"
+                android:text="@={user.first}"
                 app:layout_constraintEnd_toStartOf="@+id/last"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toStartOf="@id/guidelineLeft"
@@ -52,7 +52,7 @@
                 android:hint="@string/last"
                 android:importantForAutofill="no"
                 android:inputType="text"
-                android:text="@{userVO.last}"
+                android:text="@={user.last}"
                 app:layout_constraintEnd_toStartOf="@+id/guidelineRight"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toEndOf="@+id/first"
@@ -68,7 +68,7 @@
                 android:hint="@string/email"
                 android:importantForAutofill="no"
                 android:inputType="textEmailAddress"
-                android:text="@{userVO.email}"
+                android:text="@={user.email}"
                 app:layout_constraintEnd_toStartOf="@+id/username"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toStartOf="@id/guidelineLeft"
@@ -84,8 +84,8 @@
                 android:hint="@string/username"
                 android:importantForAutofill="no"
                 android:inputType="text"
-                android:text="@{userVO.username}"
-                android:enabled="@{userVO == null ? true : false}"
+                android:text="@={user.username}"
+                android:enabled="@{user == null ? true : false}"
                 app:layout_constraintEnd_toEndOf="@id/guidelineRight"
                 app:layout_constraintEnd_toStartOf="@+id/guidelineRight"
                 app:layout_constraintHorizontal_bias="0.5"
@@ -102,7 +102,7 @@
                 android:hint="@string/password"
                 android:importantForAutofill="no"
                 android:inputType="textPassword"
-                android:text="@{userVO.password}"
+                android:text="@{user.password}"
                 app:layout_constraintEnd_toStartOf="@+id/confirm"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toStartOf="@id/guidelineLeft"
@@ -120,7 +120,7 @@
                 android:hint="@string/confirm"
                 android:importantForAutofill="no"
                 android:inputType="textPassword"
-                android:text="@{userVO.password}"
+                android:text="@{user.password}"
                 app:layout_constraintEnd_toEndOf="@id/guidelineRight"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toEndOf="@+id/password"
@@ -132,13 +132,13 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="28dp"
                 android:layout_marginEnd="4dp"
-                app:layout_constraintEnd_toStartOf="@+id/rolesButton"
+                app:layout_constraintEnd_toStartOf="@+id/btnRoles"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toStartOf="@id/guidelineLeft"
                 app:layout_constraintTop_toBottomOf="@+id/password" />
 
         <Button
-                android:id="@+id/rolesButton"
+                android:id="@+id/btnRoles"
                 style="@android:style/Widget.Material.Light.Button"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -151,7 +151,7 @@
                 app:layout_constraintTop_toBottomOf="@+id/confirm" />
 
         <Button
-                android:id="@+id/cancel"
+                android:id="@+id/btnCancel"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -159,25 +159,25 @@
                 android:backgroundTint="@android:color/holo_blue_dark"
                 android:text="@string/cancel"
                 android:textColor="#FFFFFF"
-                app:layout_constraintEnd_toStartOf="@+id/save"
+                app:layout_constraintEnd_toStartOf="@+id/btnSave"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toStartOf="@id/guidelineLeft"
-                app:layout_constraintTop_toBottomOf="@+id/rolesButton" />
+                app:layout_constraintTop_toBottomOf="@+id/btnRoles" />
 
         <Button
-                android:id="@+id/save"
+                android:id="@+id/btnSave"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
                 android:layout_marginTop="16dp"
                 android:backgroundTint="@android:color/holo_green_dark"
-                android:text="@{userVO == null ? @string/save : @string/update}"
+                android:text="@{user == null ? @string/save : @string/update}"
                 android:textColor="#FFFFFF"
                 app:layout_constraintEnd_toEndOf="@id/guidelineRight"
                 app:layout_constraintEnd_toStartOf="@+id/guidelineRight"
                 app:layout_constraintHorizontal_bias="0.5"
-                app:layout_constraintStart_toEndOf="@+id/cancel"
-                app:layout_constraintTop_toBottomOf="@+id/rolesButton" />
+                app:layout_constraintStart_toEndOf="@+id/btnCancel"
+                app:layout_constraintTop_toBottomOf="@+id/btnRoles" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

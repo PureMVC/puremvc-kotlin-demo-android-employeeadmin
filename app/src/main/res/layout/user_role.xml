@@ -11,36 +11,36 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:choiceMode="multipleChoice"
-            app:layout_constraintBottom_toTopOf="@+id/cancel"
+            app:layout_constraintBottom_toTopOf="@+id/btnCancel"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <Button
-                android:id="@+id/cancel"
-                style="@style/Widget.AppCompat.Button.Colored"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="4dp"
-                android:backgroundTint="@android:color/holo_red_dark"
-                android:text="@string/cancel"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/ok"
-                app:layout_constraintHorizontal_bias="0.5"
-                app:layout_constraintStart_toStartOf="parent" />
+            android:id="@+id/btnCancel"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:backgroundTint="@android:color/holo_red_dark"
+            android:text="@string/cancel"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/btnOk"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent" />
 
         <Button
-                android:id="@+id/ok"
-                style="@style/Widget.AppCompat.Button.Colored"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:backgroundTint="@android:color/holo_green_dark"
-                android:text="@string/ok"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.5"
-                app:layout_constraintStart_toEndOf="@+id/cancel" />
+            android:id="@+id/btnOk"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:backgroundTint="@android:color/holo_green_dark"
+            android:text="@string/ok"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/btnCancel" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

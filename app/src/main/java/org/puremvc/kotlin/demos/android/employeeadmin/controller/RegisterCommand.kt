@@ -18,12 +18,13 @@ class RegisterCommand: SimpleCommand() {
 
     override fun execute(notification: INotification) {
 
-        val fragment = notification.body as WeakReference<Fragment>
+        val fragment = notification.body as WeakReference<*>
 
         if (fragment.get() is Fragment) {
             if (facade.hasMediator(EmployeeAdminMediator.NAME))
                 facade.removeMediator(EmployeeAdminMediator.NAME)
 
+            @Suppress("UNCHECKED_CAST")
             facade.registerMediator(EmployeeAdminMediator(fragment as WeakReference<Any?>))
         }
 

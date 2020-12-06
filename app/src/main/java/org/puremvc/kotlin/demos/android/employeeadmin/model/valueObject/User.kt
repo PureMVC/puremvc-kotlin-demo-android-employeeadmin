@@ -10,16 +10,18 @@ package org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject
 
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
+import org.puremvc.kotlin.demos.android.employeeadmin.Application
+import org.puremvc.kotlin.demos.android.employeeadmin.R
 
 @Parcelize
-data class User(var id: Long, var username: String?, var first: String, var last: String, var email: String?, var password: String?, var department: Department?): Parcelable {
+data class User(var id: Long?, var username: String?, var first: String?, var last: String?, var email: String?, var password: String?, var department: Department?): Parcelable {
 
     fun validate(confirm: String): String? {
-        if (first == "" || last == "" || username == "" || password == "" || confirm == "" || department == null || department?.id == null || department?.name == null) {
-            return "Invalid Form Data."
+        if (first == "" || last == "" || username == "" || password == "" || confirm == "" || department == null || department?.id == 0L) {
+            return Application.context?.resources?.getString(R.string.error_invalid_data)
         }
         if (password != confirm) {
-            return "Your password and confirmation password do not match."
+            return Application.context?.resources?.getString(R.string.error_password)
         }
         return null
     }

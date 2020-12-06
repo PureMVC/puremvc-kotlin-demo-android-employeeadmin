@@ -11,6 +11,7 @@ package org.puremvc.kotlin.demos.android.employeeadmin.view.components
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.test.espresso.idling.CountingIdlingResource
 import org.puremvc.kotlin.demos.android.employeeadmin.R
 
 class EmployeeAdmin: AppCompatActivity() {
@@ -31,4 +32,19 @@ class EmployeeAdmin: AppCompatActivity() {
             .show()
     }
 
+}
+
+object IdlingResource {
+
+    val counter = CountingIdlingResource("Espresso")
+
+    fun increment() {
+        counter.increment()
+    }
+
+    fun decrement() {
+        if (!counter.isIdleNow) {
+            counter.decrement()
+        }
+    }
 }
