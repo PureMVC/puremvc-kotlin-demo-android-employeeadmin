@@ -50,6 +50,7 @@ class RoleProxyTest {
 
         connection.readableDatabase.use {
             userProxy = UserProxy(connection)
+            roleProxy = RoleProxy(connection)
         }
     }
 

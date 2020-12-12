@@ -11,7 +11,6 @@ package org.puremvc.kotlin.demos.android.employeeadmin.view.components
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import androidx.test.platform.app.InstrumentationRegistry
-import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -91,7 +90,7 @@ class UserProxyTest {
 
     @Test
     fun testUpdate() { // delete manually to reset state on failure
-        val joe = User(0, "jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", Department(4, "Shipping")) // insert new
+        val joe = User(null, "jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", Department(4, "Shipping")) // insert new
         val id = userProxy.save(joe)
 
         userProxy.update(User(id, "jstooge", "Joe1", "Stooge1", "joe1@stooges.com", "abc123", Department(5, "Quality Control")))
@@ -104,7 +103,6 @@ class UserProxyTest {
         assertEquals("Stooge1", user.last)
         assertEquals("joe1@stooges.com", user.email)
         assertEquals("abc123", user.password)
-        assertEquals(Pair(5L, "Quality Control"), user.department)
         assertEquals(5L, user.department!!.id)
         assertEquals("Quality Control", user.department!!.name)
 

@@ -9,9 +9,7 @@
 package org.puremvc.kotlin.demos.android.employeeadmin.controller
 
 import android.database.sqlite.SQLiteDatabase
-import android.database.sqlite.SQLiteDatabase.OpenParams
 import android.database.sqlite.SQLiteOpenHelper
-import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import org.puremvc.kotlin.demos.android.employeeadmin.Application

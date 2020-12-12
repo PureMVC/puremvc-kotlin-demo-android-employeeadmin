@@ -26,7 +26,6 @@ import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.user_list.*
 import kotlinx.coroutines.*
@@ -35,7 +34,6 @@ import org.puremvc.kotlin.demos.android.employeeadmin.R
 import org.puremvc.kotlin.demos.android.employeeadmin.databinding.UserListBinding
 import org.puremvc.kotlin.demos.android.employeeadmin.databinding.UserListItemBinding
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
-import java.lang.Exception
 import java.lang.ref.WeakReference
 import kotlin.coroutines.CoroutineContext
 

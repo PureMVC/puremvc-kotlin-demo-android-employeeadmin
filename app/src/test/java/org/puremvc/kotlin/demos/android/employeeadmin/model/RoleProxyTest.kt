@@ -11,7 +11,6 @@ package org.puremvc.kotlin.demos.android.employeeadmin.model
 import android.database.sqlite.SQLiteCursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import kotlinx.coroutines.runBlocking
 import org.junit.Test
 
 import org.junit.Assert.*
@@ -47,42 +46,36 @@ class RoleProxyTest {
     fun testFindAll() {
         `when`(cursor.count).thenReturn(1)
         `when`(cursor.getColumnIndexOrThrow("id")).thenReturn(1)
-        `when`(cursor.getInt(1)).thenReturn(1)
+        `when`(cursor.getLong(1)).thenReturn(1)
         `when`(cursor.getColumnIndexOrThrow("name")).thenReturn(2)
         `when`(cursor.getString(2)).thenReturn("Administrator")
 
-        runBlocking {
-            val roles =  roleProxy.findAll()
-            assertEquals(1, roles!!.size)
-            assertEquals("Administrator", roles[0])
-        }
+        val roles =  roleProxy.findAll()
+        assertEquals(1, roles!!.size)
+        assertEquals(1L, roles[0].id)
+        assertEquals("Administrator", roles[0].name)
     }
 
     @Test
-    fun testFindAllByUserId() {
+    fun testFindByUserId() {
         `when`(cursor.getColumnIndexOrThrow("id")).thenReturn(1)
         `when`(cursor.getInt(1)).thenReturn(0)
         `when`(cursor.getColumnIndexOrThrow("name")).thenReturn(2)
         `when`(cursor.getString(2)).thenReturn("Administrator")
 
-        runBlocking {
-            roleProxy.findAllByUserId(1)?.let { roles ->
-                assertEquals(1, roles.size)
-                assertEquals("Administrator", roles[0])
-            }
+        roleProxy.findByUserId(1)?.let { roles ->
+            assertEquals(1, roles.size)
+            assertEquals("Administrator", roles[0])
         }
     }
 
     @Test
     fun testUpdateRolesByUserId() {
         `when`(database.insertOrThrow(any(), any(), any())).thenReturn(1).thenReturn(2)
-        runBlocking {
-            val ids = roleProxy.updateRolesByUserId(1, arrayListOf(Role(1L, "Administrator"), Role(2L, "Accounts Payable")))
+        `when`(cursor.count).thenReturn(1)
+        val modified = roleProxy.updateByUserId(1, arrayListOf(Role(1L, "Administrator"), Role(2L, "Accounts Payable")))
 
-            assertEquals(2, ids!!.size)
-            assertEquals(1, ids[0])
-            assertEquals(2, ids[1])
-        }
+        assertEquals(1, modified)
     }
 
 }
