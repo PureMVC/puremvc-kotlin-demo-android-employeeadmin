@@ -33,7 +33,7 @@ class RoleProxyTest {
         connection = mock(SQLiteOpenHelper::class.java)
         database = mock(SQLiteDatabase::class.java)
         cursor = mock(SQLiteCursor::class.java)
-        roleProxy = RoleProxy(connection)
+        roleProxy = RoleProxy()
 
         `when`(connection.readableDatabase).thenReturn(database)
         `when`(connection.writableDatabase).thenReturn(database)

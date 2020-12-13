@@ -8,56 +8,91 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.model
 
-import android.database.sqlite.SQLiteOpenHelper
+import org.json.JSONArray
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
 import org.puremvc.kotlin.multicore.patterns.proxy.Proxy
+import java.io.*
 import java.lang.Exception
+import java.net.HttpURLConnection
+import java.net.URL
 
-class RoleProxy(private val connection: SQLiteOpenHelper): Proxy(NAME, null) {
+class RoleProxy(): Proxy(NAME, null) {
 
     companion object {
         const val NAME: String = "RoleProxy"
     }
 
     fun findAll(): List<Role>? {
-        val sql = "SELECT id, name FROM role"
-        var roles: ArrayList<Role>? = null
-        connection.readableDatabase.rawQuery(sql, null).use { cursor ->
-            if (cursor.count > 0) roles = ArrayList()
-            while (cursor.moveToNext()) {
-                roles?.add(Role(cursor.getLong(cursor.getColumnIndexOrThrow("id")), cursor.getString(cursor.getColumnIndexOrThrow("name"))))
+        val url = URL("http://10.0.2.2:8080/roles")
+        val connection = url.openConnection() as HttpURLConnection
+        connection.requestMethod = "GET"
+        connection.setRequestProperty("Accept", "application/json")
+
+        (if (connection.responseCode == 200) connection.inputStream else connection.errorStream).use { stream ->
+            BufferedReader(InputStreamReader(stream)).use { reader ->
+                val response = StringBuffer()
+                reader.lines().forEach { response.append(it) }
+
+                if (connection.responseCode != 200)
+                    throw Exception(response.toString())
+
+                val jsonArray = JSONArray(response.toString())
+                val roles = arrayListOf<Role>()
+                for (i in 0 until jsonArray.length()) {
+                    roles.add(Role(jsonArray.getJSONObject(i)))
+                }
+                return roles
             }
         }
-        return roles
     }
 
     fun findByUserId(id: Long): ArrayList<Role>? {
-        var roles: ArrayList<Role>? = null
-        connection.readableDatabase.rawQuery("SELECT id, name FROM role INNER JOIN user_role ON role.id = user_role.role_id WHERE user_id = ?", arrayOf(id.toString())).use { cursor ->
-            if (cursor.count > 0) roles = ArrayList()
-            while (cursor.moveToNext()) {
-                roles?.add(Role(cursor.getLong(cursor.getColumnIndexOrThrow("id")), cursor.getString(cursor.getColumnIndexOrThrow("name"))))
+        val url = URL("http://10.0.2.2:8080/employees/$id/roles")
+        val connection = url.openConnection() as HttpURLConnection
+        connection.requestMethod = "GET"
+        connection.setRequestProperty("Accept", "application/json")
+
+        (if (connection.responseCode == 200) connection.inputStream else connection.errorStream).use { stream ->
+            BufferedReader(InputStreamReader(stream)).use { reader ->
+                val response = StringBuffer()
+                reader.lines().forEach { response.append(it) }
+
+                if (connection.responseCode != 200)
+                    throw Exception(response.toString())
+
+                val jsonArray = JSONArray(response.toString())
+                val roles = arrayListOf<Role>()
+                for (i in 0 until jsonArray.length()) {
+                    roles.add(Role(jsonArray.getJSONObject(i)))
+                }
+                return roles
             }
         }
-        return roles
     }
 
     fun updateByUserId(id: Long, roles: List<Role>): Int? {
-        try {
-            connection.writableDatabase.execSQL("BEGIN TRANSACTION;")
-            connection.writableDatabase.execSQL("DELETE FROM user_role WHERE user_id = $id;")
+        val url = URL("http://10.0.2.2:8080/employees/$id/roles")
+        val connection = url.openConnection() as HttpURLConnection
+        connection.requestMethod = "PUT"
+        connection.setRequestProperty("Accept", "application/json")
+        connection.setRequestProperty("Content-Type", "application/json")
 
-            val values = (roles.map { role -> "($id, ${role.id})" }).joinToString(",")
-
-            if (values.count() > 0) connection.writableDatabase.execSQL("INSERT INTO user_role(user_id, role_id) VALUES$values")
-            connection.writableDatabase.execSQL("COMMIT")
-        } catch(exception: Exception) {
-            connection.writableDatabase.execSQL("ROLLBACK")
-            throw exception
+        BufferedOutputStream(connection.outputStream).use { stream ->
+            BufferedWriter(OutputStreamWriter(stream, "UTF-8")).use { writer ->
+                writer.write(roles.map { it.id }.toString())
+            }
         }
 
-        return connection.readableDatabase.rawQuery("SELECT changes()", null).use { cursor ->
-            return@use cursor.count
+        (if(connection.responseCode == 200) connection.inputStream else connection.errorStream).use { stream ->
+            BufferedReader(InputStreamReader(stream)).use { reader ->
+                val response = StringBuffer()
+                reader.lines().forEach { response.append(it) }
+
+                if (connection.responseCode != 200)
+                    throw Exception(response.toString())
+
+                return 1
+            }
         }
     }
 

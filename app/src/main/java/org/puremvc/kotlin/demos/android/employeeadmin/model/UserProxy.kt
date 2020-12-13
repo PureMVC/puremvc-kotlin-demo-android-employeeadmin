@@ -8,85 +8,157 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.model
 
-import android.database.sqlite.SQLiteOpenHelper
+import org.json.JSONArray
+import org.json.JSONObject
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 import org.puremvc.kotlin.multicore.patterns.proxy.Proxy
+import java.io.*
+import java.net.HttpURLConnection
+import java.net.URL
+import kotlin.collections.ArrayList
 
-class UserProxy(private val connection: SQLiteOpenHelper): Proxy(NAME, null) {
+class UserProxy(): Proxy(NAME, null) {
 
     companion object {
         const val NAME = "UserProxy"
     }
 
+    // configure: https://www.codejava.net/java-se/networking/how-to-use-java-urlconnection-and-httpurlconnection
+    // https://www.codejava.net/java-se/networking/java-urlconnection-and-httpurlconnection-examples
+    // Upload files https://www.codejava.net/java-se/networking/java-urlconnection-and-httpurlconnection-examples
     fun findAll(): ArrayList<User>? {
-        val sql = "SELECT id, first, last FROM user"
-        var users: ArrayList<User>? = null
-        connection.readableDatabase.rawQuery(sql, null).use { cursor ->
-            if (cursor.count > 0) users = ArrayList()
-            while (cursor.moveToNext()) {
-                val user = User(cursor.getLong(cursor.getColumnIndexOrThrow("id")), null,
-                    cursor.getString(cursor.getColumnIndexOrThrow("first")), cursor.getString(cursor.getColumnIndexOrThrow("last")),
-                    null, null, null)
-                users?.add(user)
+        val url = URL("http://10.0.2.2:8080/employees")
+        val connection = url.openConnection() as HttpURLConnection
+        connection.requestMethod = "GET"
+        connection.setRequestProperty("Accept", "application/json");
+        connection.readTimeout = 2000
+        connection.connectTimeout = 2000
+
+        (if (connection.responseCode == 200) connection.inputStream else connection.errorStream).use { stream ->
+            BufferedReader(InputStreamReader(stream)).use { reader ->
+                val response = StringBuffer()
+                reader.lines().forEach { response.append(it) }
+
+                if (connection.responseCode != 200)
+                    throw java.lang.Exception(response.toString())
+
+                val jsonArray = JSONArray(response.toString())
+                val users = arrayListOf<User>()
+                for (i in 0 until jsonArray.length()) {
+                    users.add(User(jsonArray.getJSONObject(i)))
+                }
+                return users
             }
         }
-        return users
     }
 
     fun findById(id: Long): User? {
-        var user: User? = null
-        connection.readableDatabase.rawQuery("SELECT user.*, department.name AS 'department_name' FROM user INNER JOIN department ON user.department_id = department.id WHERE user.id = ?", arrayOf(id.toString())).use { cursor ->
-            if (cursor.moveToNext()) {
-                user = User(cursor.getLong(cursor.getColumnIndexOrThrow("id")), cursor.getString(cursor.getColumnIndexOrThrow("username")),
-                    cursor.getString(cursor.getColumnIndexOrThrow("first")), cursor.getString(cursor.getColumnIndexOrThrow("last")),
-                    cursor.getString(cursor.getColumnIndexOrThrow("email")), cursor.getString(cursor.getColumnIndexOrThrow("password")),
-                    Department(cursor.getLong(cursor.getColumnIndexOrThrow("department_id")), cursor.getString(cursor.getColumnIndexOrThrow("department_name"))))
+        val url = URL("http://10.0.2.2:8080/employees/$id")
+        val connection = url.openConnection() as HttpURLConnection
+        connection.requestMethod = "GET"
+        connection.setRequestProperty("Accept", "application/json")
+
+        (if (connection.responseCode == 200) connection.inputStream else connection.errorStream).use { stream ->
+            BufferedReader(InputStreamReader(stream)).use { reader ->
+                val response = StringBuffer()
+                reader.lines().forEach { response.append(it) }
+
+                if (connection.responseCode != 200)
+                    throw Exception(response.toString())
+
+                return User(JSONObject(response.toString()))
             }
         }
-        return user
     }
 
     fun save(user: User): Long? {
-        val sql = "INSERT INTO user(username, first, last, email, password, department_id) VALUES(?, ?, ?, ?, ?, ?)"
-        connection.writableDatabase.execSQL(sql, arrayOf(user.username, user.first, user.last, user.email, user.password, user.department?.id.toString()))
+        val url = URL("http://10.0.2.2:8080/employees")
+        val connection = url.openConnection() as HttpURLConnection
+        connection.requestMethod = "POST"
+        connection.doOutput = true
+        connection.setRequestProperty("Accept", "application/json")
+        connection.setRequestProperty("Content-Type", "application/json")
 
-        connection.readableDatabase.rawQuery("SELECT last_insert_rowid()", null).use { cursor ->
-            if (cursor.moveToFirst())
-                return cursor.getLong(0)
-            else
-                return null
+        BufferedOutputStream(connection.outputStream).use { stream ->
+            BufferedWriter(OutputStreamWriter(stream, "UTF-8")).use { writer ->
+                writer.write(user.toJSONObject().toString())
+            }
+        }
+
+        (if (connection.responseCode == 201) connection.inputStream else connection.errorStream).use { stream ->
+            BufferedReader(InputStreamReader(stream)).use { reader ->
+                val response = StringBuffer()
+                reader.lines().forEach { response.append(it) }
+
+                if (connection.responseCode != 201)
+                    throw Exception(response.toString())
+
+                return User(JSONObject(response.toString())).id
+            }
         }
     }
 
     fun update(user: User): Int? {
-        val sql = "UPDATE user SET first = ?, last = ?, email = ?, password = ?, department_id = ? WHERE id = ?"
-        connection.writableDatabase.execSQL(sql, arrayOf(user.first, user.last, user.email, user.password, user.department?.id.toString(), user.id.toString()))
+        val url = URL("http://10.0.2.2:8080/employees/${user.id}")
+        val connection = url.openConnection() as HttpURLConnection
+        connection.requestMethod = "PUT"
+        connection.doOutput = true
+        connection.setRequestProperty("Accept", "application/json")
+        connection.setRequestProperty("Content-Type", "application/json")
 
-        connection.readableDatabase.rawQuery("SELECT changes()", null).use { cursor ->
-            return if (cursor.moveToFirst()) cursor.getInt(0) else null
+        BufferedOutputStream(connection.outputStream).use { stream ->
+            BufferedWriter(OutputStreamWriter(stream, "UTF-8")).use { writer ->
+                writer.write((user.toJSONObject().toString()))
+            }
+        }
+
+        (if (connection.responseCode == 200) connection.inputStream else connection.errorStream).use { stream ->
+            BufferedReader(InputStreamReader(stream)).use { reader ->
+                val response = StringBuffer()
+                reader.lines().forEach { response.append(it) }
+
+                if (connection.responseCode != 200)
+                    throw Exception(response.toString())
+
+                return 1
+            }
         }
     }
 
     fun deleteById(id: Long): Int? {
-        val sql = "DELETE FROM user WHERE id = ?"
-        connection.writableDatabase.execSQL(sql, arrayOf(id.toString()))
+        val url = URL("http://10.0.2.2:8080/employees/$id")
+        val connection = url.openConnection() as HttpURLConnection
+        connection.requestMethod = "DELETE"
 
-        connection.readableDatabase.rawQuery("SELECT changes()", null).use { cursor ->
-            return if (cursor.moveToFirst()) cursor.getInt(0) else null
-        }
+        if (connection.responseCode != 204)
+            throw Exception("Unable to delete the specified record.")
+
+        return 1
     }
 
     fun findAllDepartments(): List<Department>? {
-        val sql = "SELECT id, name FROM department"
-        var departments: ArrayList<Department>? = null
-        connection.readableDatabase.rawQuery(sql, null).use { cursor ->
-            if (cursor.count != 0) departments = ArrayList()
-            while (cursor.moveToNext()) {
-                departments?.add(Department(cursor.getLong(cursor.getColumnIndexOrThrow("id")), cursor.getString(cursor.getColumnIndexOrThrow("name"))))
+        val url = URL("http://10.0.2.2:8080/departments")
+        val connection = url.openConnection() as HttpURLConnection
+        connection.requestMethod = "GET"
+        connection.setRequestProperty("Accept", "application/json")
+
+        (if (connection.responseCode == 200) connection.inputStream else connection.errorStream).use { stream ->
+            BufferedReader(InputStreamReader(stream)).use { reader ->
+                val response = StringBuffer()
+                reader.readLine().also { response.append(it) }
+
+                if (connection.responseCode != 200)
+                    throw java.lang.Exception(response.toString())
+
+                val jsonArray = JSONArray(response.toString())
+                val departments = arrayListOf<Department>()
+                for (i in 0 until jsonArray.length()) {
+                    departments.add(Department(jsonArray.getJSONObject(i)))
+                }
+                return departments
             }
         }
-        return departments
     }
 
 }
