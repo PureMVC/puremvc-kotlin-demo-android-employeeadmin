@@ -12,4 +12,4 @@ import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
-class Role(var id: Long?, var name: String?): Parcelable
+data class Role(var id: Long?, var name: String?): Parcelable

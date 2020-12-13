@@ -82,7 +82,7 @@ class UserRole: DialogFragment() {
                 arguments?.getLong("id")?.let {
                     launch { // network/database: existing user
                         withContext(Dispatchers.IO) {
-                            roles = delegate?.findRolesById(it)
+                            roles = delegate?.findRolesById(if(it != 0L) it else null)
                         }
                     }
                 }

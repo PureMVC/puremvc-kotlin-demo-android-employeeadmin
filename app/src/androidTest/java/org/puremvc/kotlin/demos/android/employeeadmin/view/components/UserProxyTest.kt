@@ -69,6 +69,15 @@ class UserProxyTest {
     }
 
     @Test
+    fun testFindById() {
+        val user = userProxy.findById(1)
+        assertNotNull(user)
+        assertEquals(user!!.id, 1L)
+        assertEquals(user.first,  "Larry")
+        assertEquals(user.last,  "Stooge")
+    }
+
+    @Test
     fun testSaveAndFindByIdAndDelete() {
         val joe = User(0, "jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", Department(4, "Shipping"))
         val id = userProxy.save(joe)
