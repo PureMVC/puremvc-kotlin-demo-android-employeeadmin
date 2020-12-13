@@ -25,7 +25,7 @@ class RoleProxy(private val connection: SQLiteOpenHelper): Proxy(NAME, null) {
         connection.readableDatabase.rawQuery(sql, null).use { cursor ->
             if (cursor.count > 0) roles = ArrayList()
             while (cursor.moveToNext()) {
-                roles?.add(Role(cursor.getLong(cursor.getColumnIndexOrThrow("id")), cursor.getString(cursor.getColumnIndexOrThrow("name"))))
+                roles?.add(Role(cursor))
             }
         }
         return roles
@@ -36,7 +36,7 @@ class RoleProxy(private val connection: SQLiteOpenHelper): Proxy(NAME, null) {
         connection.readableDatabase.rawQuery("SELECT id, name FROM role INNER JOIN user_role ON role.id = user_role.role_id WHERE user_id = ?", arrayOf(id.toString())).use { cursor ->
             if (cursor.count > 0) roles = ArrayList()
             while (cursor.moveToNext()) {
-                roles?.add(Role(cursor.getLong(cursor.getColumnIndexOrThrow("id")), cursor.getString(cursor.getColumnIndexOrThrow("name"))))
+                roles?.add(Role(cursor))
             }
         }
         return roles

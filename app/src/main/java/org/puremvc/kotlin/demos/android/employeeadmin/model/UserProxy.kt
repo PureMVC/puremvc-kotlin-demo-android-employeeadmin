@@ -25,10 +25,7 @@ class UserProxy(private val connection: SQLiteOpenHelper): Proxy(NAME, null) {
         connection.readableDatabase.rawQuery(sql, null).use { cursor ->
             if (cursor.count > 0) users = ArrayList()
             while (cursor.moveToNext()) {
-                val user = User(cursor.getLong(cursor.getColumnIndexOrThrow("id")), null,
-                    cursor.getString(cursor.getColumnIndexOrThrow("first")), cursor.getString(cursor.getColumnIndexOrThrow("last")),
-                    null, null, null)
-                users?.add(user)
+                users?.add(User(cursor))
             }
         }
         return users
@@ -38,10 +35,7 @@ class UserProxy(private val connection: SQLiteOpenHelper): Proxy(NAME, null) {
         var user: User? = null
         connection.readableDatabase.rawQuery("SELECT user.*, department.name AS 'department_name' FROM user INNER JOIN department ON user.department_id = department.id WHERE user.id = ?", arrayOf(id.toString())).use { cursor ->
             if (cursor.moveToNext()) {
-                user = User(cursor.getLong(cursor.getColumnIndexOrThrow("id")), cursor.getString(cursor.getColumnIndexOrThrow("username")),
-                    cursor.getString(cursor.getColumnIndexOrThrow("first")), cursor.getString(cursor.getColumnIndexOrThrow("last")),
-                    cursor.getString(cursor.getColumnIndexOrThrow("email")), cursor.getString(cursor.getColumnIndexOrThrow("password")),
-                    Department(cursor.getLong(cursor.getColumnIndexOrThrow("department_id")), cursor.getString(cursor.getColumnIndexOrThrow("department_name"))))
+                user = User(cursor)
             }
         }
         return user
@@ -83,7 +77,7 @@ class UserProxy(private val connection: SQLiteOpenHelper): Proxy(NAME, null) {
         connection.readableDatabase.rawQuery(sql, null).use { cursor ->
             if (cursor.count != 0) departments = ArrayList()
             while (cursor.moveToNext()) {
-                departments?.add(Department(cursor.getLong(cursor.getColumnIndexOrThrow("id")), cursor.getString(cursor.getColumnIndexOrThrow("name"))))
+                departments?.add(Department(cursor))
             }
         }
         return departments
