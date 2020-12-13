@@ -48,8 +48,6 @@ class UserProxyTest {
         assertEquals(user!!.id, 1L)
         assertEquals(user.first,  "Larry")
         assertEquals(user.last,  "Stooge")
-
-        print(user.toJSONObject())
     }
 
     @Test
