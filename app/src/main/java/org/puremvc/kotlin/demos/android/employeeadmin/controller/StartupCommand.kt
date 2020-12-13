@@ -56,13 +56,11 @@ class StartupCommand: SimpleCommand() {
 
         try {
             connection.readableDatabase.use {
-                facade.run {
-                    registerProxy(UserProxy(connection))
-                    registerProxy(RoleProxy(connection))
+                facade.registerProxy(UserProxy(connection))
+                facade.registerProxy(RoleProxy(connection))
 
-                    registerCommand(ApplicationFacade.REGISTER) { RegisterCommand() }
-                    registerMediator(ApplicationMediator(WeakReference(application)))
-                }
+                facade.registerCommand(ApplicationFacade.REGISTER) { RegisterCommand() }
+                facade.registerMediator(ApplicationMediator(WeakReference(application)))
             }
         } catch (exception: Exception) {
             Log.d("StartupCommand", "execute: ${exception.localizedMessage}")
