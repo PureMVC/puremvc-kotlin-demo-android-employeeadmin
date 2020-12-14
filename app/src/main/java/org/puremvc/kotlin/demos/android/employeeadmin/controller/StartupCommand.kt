@@ -16,14 +16,23 @@ import org.puremvc.kotlin.demos.android.employeeadmin.view.ApplicationMediator
 import org.puremvc.kotlin.multicore.interfaces.INotification
 import org.puremvc.kotlin.multicore.patterns.command.SimpleCommand
 import java.lang.ref.WeakReference
+import java.net.HttpURLConnection
+import java.net.URL
 
 class StartupCommand: SimpleCommand() {
 
     override fun execute(notification: INotification) {
         val application = notification.body as Application
 
-        facade.registerProxy(UserProxy())
-        facade.registerProxy(RoleProxy())
+        val factory: (URL) -> HttpURLConnection  = { url ->
+            val connection = url.openConnection() as HttpURLConnection
+            connection.readTimeout = 2500
+            connection.connectTimeout = 2500
+            connection
+        }
+
+        facade.registerProxy(UserProxy(factory))
+        facade.registerProxy(RoleProxy(factory))
 
         facade.registerCommand(ApplicationFacade.REGISTER) { RegisterCommand() }
         facade.registerMediator(ApplicationMediator(WeakReference(application)))

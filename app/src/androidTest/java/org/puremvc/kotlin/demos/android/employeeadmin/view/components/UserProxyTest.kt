@@ -16,6 +16,8 @@ import org.puremvc.kotlin.demos.android.employeeadmin.model.UserProxy
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 import java.lang.Exception
+import java.net.HttpURLConnection
+import java.net.URL
 
 class UserProxyTest {
 
@@ -23,7 +25,10 @@ class UserProxyTest {
 
     @Before
     fun setup() {
-        userProxy = UserProxy()
+        val factory: (URL) -> HttpURLConnection = { url ->
+           url.openConnection() as HttpURLConnection
+        }
+        userProxy = UserProxy(factory)
     }
 
     @After

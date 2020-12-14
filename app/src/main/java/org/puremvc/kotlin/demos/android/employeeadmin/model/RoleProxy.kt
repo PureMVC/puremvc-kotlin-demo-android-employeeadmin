@@ -16,15 +16,14 @@ import java.lang.Exception
 import java.net.HttpURLConnection
 import java.net.URL
 
-class RoleProxy(): Proxy(NAME, null) {
+class RoleProxy(private val factory: (URL) -> HttpURLConnection) : Proxy(NAME, null) {
 
     companion object {
         const val NAME: String = "RoleProxy"
     }
 
     fun findAll(): List<Role>? {
-        val url = URL("http://10.0.2.2:8080/roles")
-        val connection = url.openConnection() as HttpURLConnection
+        val connection = factory(URL("http://10.0.2.2:8080/roles"))
         connection.requestMethod = "GET"
         connection.setRequestProperty("Accept", "application/json")
 
@@ -47,8 +46,7 @@ class RoleProxy(): Proxy(NAME, null) {
     }
 
     fun findByUserId(id: Long): ArrayList<Role>? {
-        val url = URL("http://10.0.2.2:8080/employees/$id/roles")
-        val connection = url.openConnection() as HttpURLConnection
+        val connection = factory(URL("http://10.0.2.2:8080/employees/$id/roles"))
         connection.requestMethod = "GET"
         connection.setRequestProperty("Accept", "application/json")
 
@@ -71,8 +69,7 @@ class RoleProxy(): Proxy(NAME, null) {
     }
 
     fun updateByUserId(id: Long, roles: List<Role>): Int? {
-        val url = URL("http://10.0.2.2:8080/employees/$id/roles")
-        val connection = url.openConnection() as HttpURLConnection
+        val connection = factory(URL("http://10.0.2.2:8080/employees/$id/roles"))
         connection.requestMethod = "PUT"
         connection.setRequestProperty("Accept", "application/json")
         connection.setRequestProperty("Content-Type", "application/json")

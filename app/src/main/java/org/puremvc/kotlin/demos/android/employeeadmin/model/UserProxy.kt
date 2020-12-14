@@ -18,22 +18,17 @@ import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.collections.ArrayList
 
-class UserProxy(): Proxy(NAME, null) {
+class UserProxy(private val factory: (URL) -> HttpURLConnection): Proxy(NAME, null) {
 
     companion object {
         const val NAME = "UserProxy"
     }
 
-    // configure: https://www.codejava.net/java-se/networking/how-to-use-java-urlconnection-and-httpurlconnection
-    // https://www.codejava.net/java-se/networking/java-urlconnection-and-httpurlconnection-examples
-    // Upload files https://www.codejava.net/java-se/networking/java-urlconnection-and-httpurlconnection-examples
     fun findAll(): ArrayList<User>? {
-        val url = URL("http://10.0.2.2:8080/employees")
-        val connection = url.openConnection() as HttpURLConnection
+        val connection = factory(URL("http://10.0.2.2:8080/employees"))
         connection.requestMethod = "GET"
         connection.setRequestProperty("Accept", "application/json");
-        connection.readTimeout = 2000
-        connection.connectTimeout = 2000
+        connection.setRequestProperty("Accept-Language", "en-US");
 
         (if (connection.responseCode == 200) connection.inputStream else connection.errorStream).use { stream ->
             BufferedReader(InputStreamReader(stream)).use { reader ->
@@ -54,8 +49,7 @@ class UserProxy(): Proxy(NAME, null) {
     }
 
     fun findById(id: Long): User? {
-        val url = URL("http://10.0.2.2:8080/employees/$id")
-        val connection = url.openConnection() as HttpURLConnection
+        val connection = factory(URL("http://10.0.2.2:8080/employees/$id"))
         connection.requestMethod = "GET"
         connection.setRequestProperty("Accept", "application/json")
 
@@ -73,8 +67,7 @@ class UserProxy(): Proxy(NAME, null) {
     }
 
     fun save(user: User): Long? {
-        val url = URL("http://10.0.2.2:8080/employees")
-        val connection = url.openConnection() as HttpURLConnection
+        val connection = factory(URL("http://10.0.2.2:8080/employees"))
         connection.requestMethod = "POST"
         connection.doOutput = true
         connection.setRequestProperty("Accept", "application/json")
@@ -100,8 +93,7 @@ class UserProxy(): Proxy(NAME, null) {
     }
 
     fun update(user: User): Int? {
-        val url = URL("http://10.0.2.2:8080/employees/${user.id}")
-        val connection = url.openConnection() as HttpURLConnection
+        val connection = factory(URL("http://10.0.2.2:8080/employees/${user.id}"))
         connection.requestMethod = "PUT"
         connection.doOutput = true
         connection.setRequestProperty("Accept", "application/json")
@@ -127,8 +119,7 @@ class UserProxy(): Proxy(NAME, null) {
     }
 
     fun deleteById(id: Long): Int? {
-        val url = URL("http://10.0.2.2:8080/employees/$id")
-        val connection = url.openConnection() as HttpURLConnection
+        val connection = factory(URL("http://10.0.2.2:8080/employees/$id"))
         connection.requestMethod = "DELETE"
 
         if (connection.responseCode != 204)
@@ -138,8 +129,7 @@ class UserProxy(): Proxy(NAME, null) {
     }
 
     fun findAllDepartments(): List<Department>? {
-        val url = URL("http://10.0.2.2:8080/departments")
-        val connection = url.openConnection() as HttpURLConnection
+        val connection = factory(URL("http://10.0.2.2:8080/departments"))
         connection.requestMethod = "GET"
         connection.setRequestProperty("Accept", "application/json")
 

@@ -17,6 +17,8 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.mockito.Mockito.*
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
+import java.net.HttpURLConnection
+import java.net.URL
 
 class RoleProxyTest {
 
@@ -33,7 +35,10 @@ class RoleProxyTest {
         connection = mock(SQLiteOpenHelper::class.java)
         database = mock(SQLiteDatabase::class.java)
         cursor = mock(SQLiteCursor::class.java)
-        roleProxy = RoleProxy()
+        val factory: (URL) -> HttpURLConnection = { url ->
+            url.openConnection() as HttpURLConnection
+        }
+        roleProxy = RoleProxy(factory)
 
         `when`(connection.readableDatabase).thenReturn(database)
         `when`(connection.writableDatabase).thenReturn(database)

@@ -38,7 +38,8 @@ class EmployeeAdminMediator(override var viewComponent: WeakReference<Any?>?): M
     }
 
     override fun findAll(): ArrayList<User>? {
-        return userProxy?.findAll()
+        return null
+        //return userProxy?.findAll()
     }
 
     override fun deleteById(id: Long?): Int? {

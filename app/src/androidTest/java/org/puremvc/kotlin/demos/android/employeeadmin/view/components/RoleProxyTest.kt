@@ -24,7 +24,7 @@ class RoleProxyTest {
     @Before
     fun setup() {
         userProxy = UserProxy()
-        roleProxy = RoleProxy()
+        roleProxy = RoleProxy(factory)
     }
 
     @Test

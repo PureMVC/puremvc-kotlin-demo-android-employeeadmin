@@ -10,7 +10,6 @@ package org.puremvc.kotlin.demos.android.employeeadmin.model
 
 import android.database.sqlite.SQLiteCursor
 import android.database.sqlite.SQLiteDatabase
-import android.database.sqlite.SQLiteOpenHelper
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -19,11 +18,17 @@ import org.mockito.Mockito.*
 import org.mockito.runners.MockitoJUnitRunner
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
+import java.io.ByteArrayInputStream
+import java.io.InputStream
+import java.net.HttpURLConnection
+import java.net.URL
 
 @RunWith(MockitoJUnitRunner::class)
 class UserProxyTest {
 
-    private lateinit var connection: SQLiteOpenHelper
+    private lateinit var connection: HttpURLConnection
+
+    private lateinit var inputStream: InputStream
 
     private lateinit var database: SQLiteDatabase
 
@@ -31,33 +36,35 @@ class UserProxyTest {
 
     private lateinit var userProxy: UserProxy
 
+    // configure: https://www.codejava.net/java-se/networking/how-to-use-java-urlconnection-and-httpurlconnection
+    // https://www.codejava.net/java-se/networking/java-urlconnection-and-httpurlconnection-examples
+
+    // https://coderwall.com/p/atzcla/mocking-urlconnection https://gist.github.com/xaethos/3792258
+
+    // https://www.javatips.net/api/stackify-api-java-master/src/test/java/com/stackify/api/common/http/HttpClientTest.java
+
+    // https://stackoverflow.com/questions/57108733/unit-testing-httpurlconnention
+
+    // https://stackoverflow.com/questions/25334139/how-to-mock-a-url-connection
+    // https://stackoverflow.com/questions/565535/mocking-a-url-in-java
+
+    // pass URL to method for mocking
+
     @Before
     fun setup() {
-        connection = mock(SQLiteOpenHelper::class.java)
-        database = mock(SQLiteDatabase::class.java)
-        cursor = mock(SQLiteCursor::class.java)
-        userProxy = UserProxy()
+        connection = mock(HttpURLConnection::class.java)
+        `when`(connection.responseCode).thenReturn(200)
+        val factory: (URL) -> HttpURLConnection = { connection }
 
-        `when`(connection.readableDatabase).thenReturn(database)
-        `when`(connection.writableDatabase).thenReturn(database)
-        `when`(database.rawQuery(anyString(), any())).thenReturn(cursor)
-        `when`(database.query(anyString(), any(), any(), any(), any(), any(), any())).thenReturn(cursor)
-        `when`(cursor.moveToNext()).thenReturn(true).thenReturn(false)
-        `when`(cursor.moveToFirst()).thenReturn(true)
+        val data = "[{\"id\":1,\"first\":\"Larry\",\"last\":\"Stooge\"}]"
+        inputStream = data.byteInputStream()
+        `when`(connection.inputStream).thenReturn(inputStream)
+
+        userProxy = UserProxy(factory)
     }
 
     @Test
     fun testFindAll() {
-        `when`(cursor.count).thenReturn(1)
-        `when`(cursor.getColumnIndexOrThrow("id")).thenReturn(1)
-        `when`(cursor.getLong(1)).thenReturn(1)
-
-        `when`(cursor.getColumnIndexOrThrow("first")).thenReturn(2)
-        `when`(cursor.getString(2)).thenReturn("Larry")
-
-        `when`(cursor.getColumnIndexOrThrow("last")).thenReturn(3)
-        `when`(cursor.getString(3)).thenReturn("Stooge")
-
         userProxy.findAll().let { user ->
             assertEquals(1L, user!![0].id)
             assertEquals("Larry", user[0].first)
