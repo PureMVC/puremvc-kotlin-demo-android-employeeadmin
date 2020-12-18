@@ -21,4 +21,8 @@ data class Department(var id: Long? = null, var name: String? = null): Parcelabl
         try { name = cursor.getString(cursor.getColumnIndexOrThrow("name")) } catch (exception: Exception) {}
     }
 
+    fun validate(): Boolean {
+        return id != 0L
+    }
+
 }

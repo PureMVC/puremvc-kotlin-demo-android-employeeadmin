@@ -29,7 +29,7 @@ data class User(var id: Long? = null, var username: String? = null, var first: S
     }
 
     fun validate(confirm: String): String? {
-        if (first == "" || last == "" || username == "" || password == "" || confirm == "" || department == null || department?.id == 0L) {
+        if (first == "" || last == "" || username == "" || password == "" || confirm == "" || department != null || !department!!.validate()) {
             return Application.context?.resources?.getString(R.string.error_invalid_data)
         }
         if (password != confirm) {
