@@ -28,4 +28,8 @@ data class Department(var id: Long? = null, var name: String? = null): Parcelabl
         return data
     }
 
+    fun validate(): Boolean {
+        return id != null
+    }
+
 }

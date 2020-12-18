@@ -14,6 +14,8 @@ import org.junit.Test
 import org.puremvc.kotlin.demos.android.employeeadmin.model.RoleProxy
 import org.puremvc.kotlin.demos.android.employeeadmin.model.UserProxy
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
+import java.net.HttpURLConnection
+import java.net.URL
 
 class RoleProxyTest {
 
@@ -23,7 +25,14 @@ class RoleProxyTest {
 
     @Before
     fun setup() {
-        userProxy = UserProxy()
+        val factory: (URL) -> HttpURLConnection = { url ->
+            val connection = url.openConnection() as HttpURLConnection
+            connection.readTimeout = 2500
+            connection.connectTimeout = 2500
+            connection
+        }
+
+        userProxy = UserProxy(factory)
         roleProxy = RoleProxy(factory)
     }
 

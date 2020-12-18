@@ -8,52 +8,42 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.model
 
-import android.database.sqlite.SQLiteCursor
-import android.database.sqlite.SQLiteDatabase
-import android.database.sqlite.SQLiteOpenHelper
 import org.junit.Test
 
 import org.junit.Assert.*
 import org.junit.Before
 import org.mockito.Mockito.*
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
+import java.io.InputStream
+import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
 class RoleProxyTest {
 
-    private lateinit var connection: SQLiteOpenHelper
+    private lateinit var connection: HttpURLConnection
 
-    private lateinit var database: SQLiteDatabase
-
-    private lateinit var cursor: SQLiteCursor
+    private lateinit var inputStream: InputStream
 
     private lateinit var roleProxy: RoleProxy
 
     @Before
     fun setup() {
-        connection = mock(SQLiteOpenHelper::class.java)
-        database = mock(SQLiteDatabase::class.java)
-        cursor = mock(SQLiteCursor::class.java)
-        val factory: (URL) -> HttpURLConnection = { url ->
-            url.openConnection() as HttpURLConnection
-        }
-        roleProxy = RoleProxy(factory)
+        connection = mock(HttpURLConnection::class.java)
+        `when`(connection.responseCode).thenReturn(200)
+        val factory: (URL) -> HttpURLConnection = { connection }
+        val outputStream = mock(OutputStream::class.java)
+        `when`(connection.outputStream).thenReturn(outputStream)
 
-        `when`(connection.readableDatabase).thenReturn(database)
-        `when`(connection.writableDatabase).thenReturn(database)
-        `when`(database.rawQuery(anyString(), any())).thenReturn(cursor)
-        `when`(database.query(anyString(), any(), any(), any(), any(), any(), any())).thenReturn(cursor)
-        `when`(cursor.moveToNext()).thenReturn(true).thenReturn(false)
+        roleProxy = RoleProxy(factory)
     }
 
     @Test
     fun testFindAll() {
-        `when`(cursor.count).thenReturn(1)
-        `when`(cursor.getColumnIndexOrThrow("id")).thenReturn(1)
-        `when`(cursor.getLong(1)).thenReturn(1)
-        `when`(cursor.getColumnIndexOrThrow("name")).thenReturn(2)
-        `when`(cursor.getString(2)).thenReturn("Administrator")
+        val data = """[{"id":1,"name":"Administrator"}]"""
+        inputStream = data.byteInputStream()
+        `when`(connection.inputStream).thenReturn(inputStream)
+        `when`(connection.responseCode).thenReturn(200)
 
         val roles =  roleProxy.findAll()
         assertEquals(1, roles!!.size)
@@ -63,21 +53,24 @@ class RoleProxyTest {
 
     @Test
     fun testFindByUserId() {
-        `when`(cursor.getColumnIndexOrThrow("id")).thenReturn(1)
-        `when`(cursor.getInt(1)).thenReturn(0)
-        `when`(cursor.getColumnIndexOrThrow("name")).thenReturn(2)
-        `when`(cursor.getString(2)).thenReturn("Administrator")
+        val data = """[{"id":1,"name":"Administrator"}]"""
+        inputStream = data.byteInputStream()
+        `when`(connection.inputStream).thenReturn(inputStream)
+        `when`(connection.responseCode).thenReturn(200)
 
         roleProxy.findByUserId(1)?.let { roles ->
             assertEquals(1, roles.size)
-            assertEquals("Administrator", roles[0])
+            assertEquals("Administrator", roles[0].name)
         }
     }
 
     @Test
     fun testUpdateRolesByUserId() {
-        `when`(database.insertOrThrow(any(), any(), any())).thenReturn(1).thenReturn(2)
-        `when`(cursor.count).thenReturn(1)
+        val data = """[4, 5, 6]"""
+        inputStream = data.byteInputStream()
+        `when`(connection.inputStream).thenReturn(inputStream)
+        `when`(connection.responseCode).thenReturn(200)
+
         val modified = roleProxy.updateByUserId(1, arrayListOf(Role(1L, "Administrator"), Role(2L, "Accounts Payable")))
 
         assertEquals(1, modified)
