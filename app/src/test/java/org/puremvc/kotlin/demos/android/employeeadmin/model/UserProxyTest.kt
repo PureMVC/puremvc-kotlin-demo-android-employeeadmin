@@ -41,7 +41,6 @@ class UserProxyTest {
         `when`(connection.readableDatabase).thenReturn(database)
         `when`(connection.writableDatabase).thenReturn(database)
         `when`(database.rawQuery(anyString(), any())).thenReturn(cursor)
-        `when`(database.query(anyString(), any(), any(), any(), any(), any(), any())).thenReturn(cursor)
         `when`(cursor.moveToNext()).thenReturn(true).thenReturn(false)
         `when`(cursor.moveToFirst()).thenReturn(true)
     }
@@ -79,8 +78,6 @@ class UserProxyTest {
         `when`(cursor.getString(5)).thenReturn("larry@stooges.com")
         `when`(cursor.getColumnIndexOrThrow("password")).thenReturn(6)
         `when`(cursor.getString(6)).thenReturn("ijk456")
-        `when`(cursor.getColumnIndexOrThrow("departmentId")).thenReturn(7)
-        `when`(cursor.getLong(7)).thenReturn(0)
         `when`(cursor.getColumnIndexOrThrow("department_name")).thenReturn(8)
         `when`(cursor.getString(8)).thenReturn("Accounting")
 
@@ -98,7 +95,6 @@ class UserProxyTest {
 
     @Test
     fun testSave() {
-        `when`(database.insertOrThrow(any(), any(), any())).thenReturn(1)
         `when`(cursor.getLong(0)).thenReturn(1)
         val user = User(null, "jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", Department(3, "Shipping"))
 
@@ -108,7 +104,6 @@ class UserProxyTest {
 
     @Test
     fun testUpdate() {
-        `when`(database.update(any(), any(), any(), any())).thenReturn(1)
         `when`(cursor.getInt(0)).thenReturn(1)
         val user = User(1, "jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", Department(3, "Shipping"))
 
@@ -118,7 +113,6 @@ class UserProxyTest {
 
     @Test
     fun testDeleteById() {
-        `when`(database.delete(any(), any(), any())).thenReturn(1)
         `when`(cursor.getInt(0)).thenReturn(1)
 
         val result = userProxy.deleteById(1)
