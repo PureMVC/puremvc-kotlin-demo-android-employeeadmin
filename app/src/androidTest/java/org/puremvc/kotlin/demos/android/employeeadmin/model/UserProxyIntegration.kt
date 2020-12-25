@@ -18,7 +18,7 @@ import java.lang.Exception
 import java.net.HttpURLConnection
 import java.net.URL
 
-class UserProxyIntegrationTest {
+class UserProxyIntegration {
 
     lateinit var userProxy: UserProxy
 

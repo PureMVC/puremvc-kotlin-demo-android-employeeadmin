@@ -15,7 +15,7 @@ import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
 import java.net.HttpURLConnection
 import java.net.URL
 
-class RoleProxyIntegrationTest {
+class RoleProxyIntegration {
 
     lateinit var userProxy: UserProxy
 
