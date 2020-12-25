@@ -1,25 +1,24 @@
 //
-//  UserProxyTest.kt
+//  UserProxyIntegrationTest.kt
 //  PureMVC Android Demo - EmployeeAdmin
 //
 //  Copyright(c) 2020 Saad Shams <saad.shams@puremvc.org>
 //  Your reuse is governed by the Creative Commons Attribution 3.0 License
 //
 
-package org.puremvc.kotlin.demos.android.employeeadmin.view.components
+package org.puremvc.kotlin.demos.android.employeeadmin.model
 
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.puremvc.kotlin.demos.android.employeeadmin.model.UserProxy
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 import java.lang.Exception
 import java.net.HttpURLConnection
 import java.net.URL
 
-class UserProxyTest {
+class UserProxyIntegrationTest {
 
     lateinit var userProxy: UserProxy
 

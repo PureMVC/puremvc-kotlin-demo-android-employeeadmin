@@ -29,9 +29,12 @@ data class User(var id: Long? = null, var username: String? = null, var first: S
     }
 
     fun validate(confirm: String): String? {
-        if (first == "" || last == "" || username == "" || password == "" || confirm == "" || department == null || !department!!.validate()) {
+        if (first == null || first == "" || last == null || last == "" ||
+                username == null || username == "" || password == null || password == "" ||
+                department == null || !department!!.validate()) {
             return Application.context?.resources?.getString(R.string.error_invalid_data)
         }
+
         if (password != confirm) {
             return Application.context?.resources?.getString(R.string.error_password)
         }
