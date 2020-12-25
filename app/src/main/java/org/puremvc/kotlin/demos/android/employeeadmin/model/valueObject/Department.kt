@@ -22,7 +22,7 @@ data class Department(var id: Long? = null, var name: String? = null): Parcelabl
     }
 
     fun validate(): Boolean {
-        return id != 0L
+        return id != null && id != 0L
     }
 
 }

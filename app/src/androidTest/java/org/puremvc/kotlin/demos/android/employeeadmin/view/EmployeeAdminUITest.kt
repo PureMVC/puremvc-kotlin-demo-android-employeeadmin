@@ -6,7 +6,7 @@
 //  Your reuse is governed by the Creative Commons Attribution 3.0 License
 //
 
-package org.puremvc.kotlin.demos.android.employeeadmin.view.components
+package org.puremvc.kotlin.demos.android.employeeadmin.view
 
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso
@@ -26,9 +26,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.puremvc.kotlin.demos.android.employeeadmin.R
+import org.puremvc.kotlin.demos.android.employeeadmin.view.components.EmployeeAdmin
+import org.puremvc.kotlin.demos.android.employeeadmin.view.components.IdlingResource
 
 @RunWith(AndroidJUnit4ClassRunner::class)
-class EmployeeAdminTest {
+class EmployeeAdminUITest {
 
     @get: Rule
     val activityRule = ActivityScenarioRule(EmployeeAdmin::class.java)

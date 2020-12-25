@@ -1,30 +1,28 @@
 //
-//  RoleProxyTest.kt
+//  UserProxyIntegration.kt
 //  PureMVC Android Demo - EmployeeAdmin
 //
 //  Copyright(c) 2020 Saad Shams <saad.shams@puremvc.org>
 //  Your reuse is governed by the Creative Commons Attribution 3.0 License
 //
 
-package org.puremvc.kotlin.demos.android.employeeadmin.view.components
+package org.puremvc.kotlin.demos.android.employeeadmin.model
 
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import androidx.test.platform.app.InstrumentationRegistry
+import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.puremvc.kotlin.demos.android.employeeadmin.model.RoleProxy
-import org.puremvc.kotlin.demos.android.employeeadmin.model.UserProxy
-import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 
-class RoleProxyTest {
+class UserProxyIntegration {
 
     lateinit var connection: SQLiteOpenHelper
 
     lateinit var userProxy: UserProxy
-
-    lateinit var roleProxy: RoleProxy
 
     @Before
     fun setup() {
@@ -48,42 +46,85 @@ class RoleProxyTest {
             override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {}
         }
 
-        connection.readableDatabase.use {
+        connection.readableDatabase.use { database ->
             userProxy = UserProxy(connection)
-            roleProxy = RoleProxy(connection)
         }
+    }
+
+    @After
+    fun teardown() {
+
     }
 
     @Test
     fun testFindAll() {
-        val roles = roleProxy.findAll()
-        assertEquals(14, roles!!.size)
-        roles.forEach { role ->
-            assertNotNull(role.id)
-            assertNotNull(role.name)
+        val users = userProxy.findAll()
+        assertEquals(3, users!!.size)
+        users.forEach { user ->
+            assertNotNull(user.id)
+            assertNotNull(user.first)
+            assertNotNull(user.last)
         }
     }
 
     @Test
-    fun testFindAllByUserId() {
-        val roles = roleProxy.findByUserId(3)!!
-        assertEquals(3, roles.size)
-        roles.forEach { role ->
-            assertNotNull(role.id)
-            assertNotNull(role.name)
-        }
+    fun testFindById() {
+        val user = userProxy.findById(1)
+        assertNotNull(user)
+        assertEquals(user!!.id, 1L)
+        assertEquals(user.first,  "Larry")
+        assertEquals(user.last,  "Stooge")
     }
 
     @Test
-    fun testUpdateAndFindById() {
-        roleProxy.updateByUserId(1, listOf(Role(1, "Administrator"), Role(2, "Accounts Payable")))
-        val roles = roleProxy.findByUserId(1)!!
-        assertEquals(2, roles.size)
+    fun testSaveAndFindByIdAndDelete() {
+        val joe = User(0, "jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", Department(4, "Shipping"))
+        val id = userProxy.save(joe)
+        val user = userProxy.findById(id!!)!!
 
-        roleProxy.updateByUserId(1, listOf(Role(4, "Employee Benefits")))
+        assertNotNull(user.id)
+        assertNotNull(user.username)
+        assertNotNull(user.first)
+        assertNotNull(user.last)
+        assertNotNull(user.email)
+        assertNotNull(user.password)
+        assertNotNull(user.department)
+        assertNotNull(user.department!!.id)
+        assertNotNull(user.department!!.name)
 
-        val roles2 = roleProxy.findByUserId(1)!!
-        assertEquals(1, roles2.size)
+        userProxy.deleteById(id)
+        assertNull(userProxy.findById(id))
+    }
+
+    @Test
+    fun testUpdate() { // delete manually to reset state on failure
+        val joe = User(null, "jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", Department(4, "Shipping")) // insert new
+        val id = userProxy.save(joe)
+
+        userProxy.update(User(id, "jstooge", "Joe1", "Stooge1", "joe1@stooges.com", "abc123", Department(5, "Quality Control")))
+
+        val user = userProxy.findById(id!!)!!
+
+        assertEquals(id, user.id)
+        assertEquals("jstooge", user.username)
+        assertEquals("Joe1", user.first)
+        assertEquals("Stooge1", user.last)
+        assertEquals("joe1@stooges.com", user.email)
+        assertEquals("abc123", user.password)
+        assertEquals(5L, user.department!!.id)
+        assertEquals("Quality Control", user.department!!.name)
+
+        userProxy.deleteById(id) // revert
+    }
+
+    @Test
+    fun testFindAllDepartments() {
+        val departments = userProxy.findAllDepartments()
+        assertEquals(5, departments!!.size)
+        departments.forEach { department ->
+            assertNotNull(department.id)
+            assertNotNull(department.name)
+        }
     }
 
 }
