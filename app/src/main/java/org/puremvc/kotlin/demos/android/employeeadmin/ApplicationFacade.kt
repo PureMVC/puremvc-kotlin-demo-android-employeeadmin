@@ -9,8 +9,8 @@
 package org.puremvc.kotlin.demos.android.employeeadmin
 
 import androidx.fragment.app.Fragment
+import org.puremvc.kotlin.demos.android.employeeadmin.controller.RegisterCommand
 import org.puremvc.kotlin.demos.android.employeeadmin.controller.StartupCommand
-import org.puremvc.kotlin.multicore.interfaces.IFacade
 import org.puremvc.kotlin.multicore.patterns.facade.Facade
 import java.lang.ref.WeakReference
 
@@ -18,20 +18,24 @@ class ApplicationFacade(key: String) : Facade(key) {
 
     companion object {
 
+        const val KEY: String = "EmployeeAdmin"
+
         const val STARTUP: String = "startup"
+
         const val REGISTER: String = "register"
 
-        fun getInstance(key: String): IFacade {
-            return Facade.getInstance(key) { k -> ApplicationFacade(k) }
+        fun getInstance(key: String): ApplicationFacade {
+            return Facade.getInstance(key) { k -> ApplicationFacade(k) } as ApplicationFacade
         }
     }
 
     override fun initializeController() {
         super.initializeController()
         registerCommand(STARTUP) { StartupCommand() }
+        registerCommand(REGISTER) { RegisterCommand() }
     }
 
-    fun register(fragment: WeakReference<Fragment>) {
+    fun registerView(fragment: WeakReference<Fragment>) {
         sendNotification(REGISTER, fragment)
     }
 

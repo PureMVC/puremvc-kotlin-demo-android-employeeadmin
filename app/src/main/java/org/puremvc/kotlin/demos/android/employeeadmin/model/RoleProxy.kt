@@ -22,7 +22,7 @@ class RoleProxy(private val factory: (URL) -> HttpURLConnection) : Proxy(NAME, n
         const val NAME: String = "RoleProxy"
     }
 
-    fun findAll(): List<Role>? {
+    fun findAll(): List<Role> {
         val connection = factory(URL("http://10.0.2.2:8080/roles"))
         connection.requestMethod = "GET"
         connection.setRequestProperty("Accept", "application/json")
@@ -45,7 +45,7 @@ class RoleProxy(private val factory: (URL) -> HttpURLConnection) : Proxy(NAME, n
         }
     }
 
-    fun findByUserId(id: Long): ArrayList<Role>? {
+    fun findByUserId(id: Long): ArrayList<Role> {
         val connection = factory(URL("http://10.0.2.2:8080/employees/$id/roles"))
         connection.requestMethod = "GET"
         connection.setRequestProperty("Accept", "application/json")
@@ -68,7 +68,7 @@ class RoleProxy(private val factory: (URL) -> HttpURLConnection) : Proxy(NAME, n
         }
     }
 
-    fun updateByUserId(id: Long, roles: List<Role>): Int? {
+    fun updateByUserId(id: Long, roles: List<Role>): Int {
         val connection = factory(URL("http://10.0.2.2:8080/employees/$id/roles"))
         connection.requestMethod = "PUT"
         connection.setRequestProperty("Accept", "application/json")

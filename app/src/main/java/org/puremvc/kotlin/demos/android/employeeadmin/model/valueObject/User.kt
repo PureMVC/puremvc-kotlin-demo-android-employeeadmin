@@ -8,10 +8,10 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject
 
+import android.content.res.Resources
 import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import org.json.JSONObject
-import org.puremvc.kotlin.demos.android.employeeadmin.Application
 import org.puremvc.kotlin.demos.android.employeeadmin.R
 import java.lang.Exception
 
@@ -19,24 +19,24 @@ import java.lang.Exception
 data class User(var id: Long? = null, var username: String? = null, var first: String? = null, var last: String? = null, var email: String? = null, var password: String? = null, var department: Department? = null): Parcelable {
 
     constructor(data: JSONObject) : this() {
-        try { id = data.getLong("id") } catch (exception: Exception) {}
-        try { username = data.getString("username") } catch (exception: Exception) {}
-        try { first = data.getString("first") } catch (exception: Exception) {}
-        try { last = data.getString("last") } catch (exception: Exception) {}
-        try { email = data.getString("email") } catch (exception: Exception) {}
-        try { password = data.getString("password") } catch (exception: Exception) {}
-        try { department = Department(data.getJSONObject("department")) } catch (exception: Exception) {}
+        try { id = data.getLong("id") } catch (_: Exception) {}
+        try { username = data.getString("username") } catch (_: Exception) {}
+        try { first = data.getString("first") } catch (_: Exception) {}
+        try { last = data.getString("last") } catch (_: Exception) {}
+        try { email = data.getString("email") } catch (_: Exception) {}
+        try { password = data.getString("password") } catch (_: Exception) {}
+        try { department = Department(data.getJSONObject("department")) } catch (_: Exception) {}
     }
 
     fun validate(confirm: String): String? {
         if (first == null || first == "" || last == null || last == "" ||
-                username == null || username == "" || password == null || password == "" ||
-                department == null || !department!!.validate()) {
-            return Application.context?.resources?.getString(R.string.error_invalid_data)
+            username == null || username == "" || password == null || password == "" ||
+            department == null || !department!!.validate()) {
+            return Resources.getSystem().getString(R.string.error_invalid_data)
         }
 
         if (password != confirm) {
-            return Application.context?.resources?.getString(R.string.error_password)
+            return Resources.getSystem().getString(R.string.error_password)
         }
         return null
     }
