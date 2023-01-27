@@ -8,11 +8,10 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.view
 
-import org.puremvc.kotlin.demos.android.employeeadmin.Application
 import org.puremvc.kotlin.multicore.patterns.mediator.Mediator
 import java.lang.ref.WeakReference
 
-class ApplicationMediator(override var viewComponent: WeakReference<Any?>?): Mediator(NAME, viewComponent) {
+class ApplicationMediator(override var viewComponent: WeakReference<*>?): Mediator(NAME, viewComponent) {
 
     companion object {
         const val NAME: String = "ApplicationMediator"

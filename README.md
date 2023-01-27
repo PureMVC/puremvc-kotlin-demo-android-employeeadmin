@@ -1,9 +1,15 @@
 ## [PureMVC](http://puremvc.github.com/) [Kotlin](https://github.com/PureMVC/puremvc-kotlin-multicore-framework/wiki) Android Demo: Employee Admin
 
-This demo illustrates techniques for performing routine maintenance operations in a PureMVC-based [Android](https://en.wikipedia.org/wiki/Android_(operating_system)) application.
+This demo illustrates techniques for performing routine maintenance operations in a PureMVC-based [Android](https://en.wikipedia.org/wiki/Android_(operating_system)) application using SQLite.
 
 ## Screenshot
 ![PureMVC Kotlin Android Demo: Employee Admin](http://puremvc.org/pages/images/screenshots/PureMVC-Shot-Kotlin-Android-EmployeeAdmin.png)
+
+## Service Dependency
+```
+git clone https://github.com/PureMVC/puremvc-js-demo-microservice-employeeadmin.git
+docker-compose up
+```
 
 ## Tests
 * [Android Instrumented Tests](http://puremvc.org/pages/images/screenshots/PureMVC-Shot-Kotlin-Android-EmployeeAdmin-UITests.gif)

@@ -8,9 +8,8 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.controller
 
-import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import org.puremvc.kotlin.demos.android.employeeadmin.view.EmployeeAdminMediator
-import org.puremvc.kotlin.demos.android.employeeadmin.view.components.EmployeeAdmin
 import org.puremvc.kotlin.multicore.interfaces.INotification
 import org.puremvc.kotlin.multicore.patterns.command.SimpleCommand
 import java.lang.ref.WeakReference
@@ -19,14 +18,15 @@ class RegisterCommand: SimpleCommand() {
 
     override fun execute(notification: INotification) {
 
-        val activity = notification.body as WeakReference<AppCompatActivity>
+        val fragment = notification.body as WeakReference<*>
 
-        if (activity.get() is EmployeeAdmin) {
+        if (fragment.get() is Fragment) {
             if (facade.hasMediator(EmployeeAdminMediator.NAME))
                 facade.removeMediator(EmployeeAdminMediator.NAME)
 
-            facade.registerMediator(EmployeeAdminMediator(activity as WeakReference<Any?>))
+            facade.registerMediator(EmployeeAdminMediator(fragment))
         }
+
     }
 
 }

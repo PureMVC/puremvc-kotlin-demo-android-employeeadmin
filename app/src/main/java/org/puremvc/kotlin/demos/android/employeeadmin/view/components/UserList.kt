@@ -16,54 +16,129 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
-import androidx.navigation.Navigation
-import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.*
+import org.puremvc.kotlin.demos.android.employeeadmin.ApplicationFacade
 import org.puremvc.kotlin.demos.android.employeeadmin.R
 import org.puremvc.kotlin.demos.android.employeeadmin.databinding.UserListBinding
-import org.puremvc.kotlin.demos.android.employeeadmin.databinding.UserListItemBinding
-import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserVO
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 import java.lang.ref.WeakReference
+
+interface IUserList {
+    fun findAll(): ArrayList<User>?
+    fun deleteById(id: Long?): Int?
+}
 
 class UserList: Fragment() {
 
-    private val userVOs by lazy { delegate.get()!!.getUsers() }
+    private var users: ArrayList<User>? = null
 
-    private lateinit var navController: NavController
+    private val viewModel: UserViewModel by activityViewModels()
 
-    private val delegate by lazy { WeakReference(activity as IUserList) }
+    private var _binding: UserListBinding? = null
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val binding = UserListBinding.inflate(inflater, container, false).apply {
-            recyclerView.apply {
-                layoutManager = LinearLayoutManager(activity)
-                adapter = UserListAdapter(userVOs)
+    private val binding get() = _binding!!
 
-                ItemTouchHelper(object : SwipeHelper(context) {
-                    override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                        userVOs.removeAt(viewHolder.adapterPosition)
-                        adapter?.notifyItemRemoved(viewHolder.adapterPosition)
-                    }
-                }).attachToRecyclerView(this)
-            }
+    private var delegate: IUserList? = null
 
-            fab.setOnClickListener {
-                navController.navigate(R.id.action_userList_to_userForm)
-            }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        ApplicationFacade.getInstance(ApplicationFacade.KEY).registerView(WeakReference(this))
+    }
 
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = UserListBinding.inflate(inflater, container, false)
+
+        IdlingResource.increment()
+        val handler = CoroutineExceptionHandler { _, exception ->
+            (activity as? EmployeeAdmin)?.alert(exception)?.show()
         }
+        lifecycleScope.launch(handler) {
+            savedInstanceState?.let { // Get User Data: State Restoration
+                users = it.getParcelableArrayList("users", User::class.java)
+            }
+
+            users ?: run { // Get User Data: Network
+                launch {
+                    withContext(Dispatchers.IO) {
+                        users = delegate?.findAll()
+                    }
+                }
+            }
+        }.invokeOnCompletion { // Upon completion to avoid race condition with any UI Data thread
+            binding.progressBar.visibility = View.GONE
+            users = users ?: arrayListOf() // Default User Data
+            binding.recyclerView.swapAdapter(Adapter(users ?: arrayListOf(), findNavController()), false) // Bind User Data
+
+            binding.apply { // Bind Event Handlers
+                fab.setOnClickListener {
+                    findNavController().navigate(R.id.action_userList_to_userForm)
+                }
+                ItemTouchHelper(object : SwipeHelper(recyclerView.context) {
+                    override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                        deleteById(viewHolder.adapterPosition)
+                    }
+                }).attachToRecyclerView(recyclerView)
+            }
+            IdlingResource.decrement()
+        }
+
         return binding.root
+    }
+
+    private fun deleteById(index: Int) {
+        val handler = CoroutineExceptionHandler { _, exception ->
+            (activity as? EmployeeAdmin)?.alert(exception).also {
+                it?.setOnDismissListener{ binding.recyclerView.adapter?.notifyItemChanged(index) }
+            }?.show()
+        }
+        lifecycleScope.launch(handler) {
+            withContext(Dispatchers.IO) {
+                delegate?.deleteById(users?.get(index)?.id)
+                withContext(Dispatchers.Main) {
+                    users?.removeAt(index)
+                    binding.recyclerView.adapter?.notifyItemRemoved(index)
+                }
+            }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        navController = Navigation.findNavController(view)
+
+        viewModel.user.observe(viewLifecycleOwner) { user ->
+            users?.forEachIndexed { index, _ ->
+                if (users?.get(index)?.id == user.id) {
+                    users?.set(index, user)
+                    return@observe
+                }
+            }
+            users?.add(user)
+            binding.recyclerView.adapter?.notifyItemInserted(users?.count()?.minus(1) ?: 0);
+        }
+    }
+
+    override fun onSaveInstanceState(bundle: Bundle) {
+        super.onSaveInstanceState(bundle)
+        bundle.putSerializable("users", users)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+    fun setDelegate(delegate: IUserList) {
+        this.delegate = delegate
     }
 
     private abstract class SwipeHelper(context: Context): ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
@@ -94,38 +169,31 @@ class UserList: Fragment() {
 
     }
 
-    // Adapter
-    private class UserListAdapter(val userVOs: ArrayList<UserVO>): RecyclerView.Adapter<UserListAdapter.UserViewHolder>() {
+    private class Adapter(val users: ArrayList<User>, val navController: NavController): RecyclerView.Adapter<Adapter.ViewHolder>() {
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
-            val binding = UserListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-            return UserViewHolder(binding, parent.findNavController())
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view = LayoutInflater.from(parent.context).inflate(android.R.layout.simple_list_item_1, parent, false)
+            return ViewHolder(view)
         }
 
-        override fun onBindViewHolder(userViewHolder: UserViewHolder, position: Int) {
-            userViewHolder.bind(userVOs[position])
-        }
-
-        override fun getItemCount(): Int {
-            return userVOs.size
-        }
-
-        // ViewHolder
-        private class UserViewHolder(val userListItem: UserListItemBinding, val navController: NavController): RecyclerView.ViewHolder(userListItem.root) {
-
-            fun bind(userVO: UserVO) {
-                userListItem.fullname = userVO.toString()
-                userListItem.listener = View.OnClickListener {
-                    navController.navigate(R.id.action_userList_to_userForm, bundleOf("userVO" to userVO))
-                }
+        override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
+            viewHolder.name.text = "%s %s".format(users[position].first, users[position].last)
+            viewHolder.name.setOnClickListener {
+                navController.navigate(R.id.action_userList_to_userForm, bundleOf("id" to users[position].id))
             }
-
         }
-    }
 
-    interface IUserList {
-        fun getUsers(): ArrayList<UserVO>
-        fun delete(username: String)
+        override fun getItemCount() = users.size
+
+        class ViewHolder(view: View): RecyclerView.ViewHolder(view) {
+
+            val name: TextView
+
+            init {
+                name = view.findViewById(android.R.id.text1)
+            }
+        }
+
     }
 
 }

@@ -10,54 +10,95 @@ package org.puremvc.kotlin.demos.android.employeeadmin.view
 
 import org.puremvc.kotlin.demos.android.employeeadmin.model.RoleProxy
 import org.puremvc.kotlin.demos.android.employeeadmin.model.UserProxy
-import org.puremvc.kotlin.demos.android.employeeadmin.model.enumerator.RoleEnum
-import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.RoleVO
-import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserVO
-import org.puremvc.kotlin.demos.android.employeeadmin.view.components.EmployeeAdmin
-import org.puremvc.kotlin.demos.android.employeeadmin.view.interfaces.IEmployeeAdmin
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
+import org.puremvc.kotlin.demos.android.employeeadmin.view.components.*
 import org.puremvc.kotlin.multicore.patterns.mediator.Mediator
 import java.lang.ref.WeakReference
 
-class EmployeeAdminMediator(override var viewComponent: WeakReference<Any?>?): Mediator(NAME, viewComponent), IEmployeeAdmin {
+class EmployeeAdminMediator(override var viewComponent: WeakReference<*>?): Mediator(NAME, viewComponent), IUserList, IUserForm, IUserRole {
 
     companion object {
-        const val NAME: String = "UserListMediator"
+        const val NAME: String = "EmployeeAdminMediator"
     }
 
-    private lateinit var userProxy: UserProxy
-
-    private lateinit var roleProxy: RoleProxy
+    private var userProxy: UserProxy? = null
+    private var roleProxy: RoleProxy? = null
 
     override fun onRegister() {
         userProxy = facade.retrieveProxy(UserProxy.NAME) as UserProxy
         roleProxy = facade.retrieveProxy(RoleProxy.NAME) as RoleProxy
 
-        (viewComponent?.get() as EmployeeAdmin).setDelegate(this)
-    }
-
-    override fun getUsers(): ArrayList<UserVO> {
-        return userProxy.users
-    }
-
-    override fun saveUser(user: UserVO, roleVO: RoleVO) {
-        userProxy.addItem(user)
-        roleProxy.addItem(roleVO)
-    }
-
-    override fun updateUser(user: UserVO, roleVO: RoleVO?) {
-        userProxy.updateItem(user)
-        roleVO?.let {
-            roleProxy.updateUserRoles(it.username, it.roles)
+        when (val view = viewComponent?.get()) {
+            is UserList -> view.setDelegate(this)
+            is UserForm -> view.setDelegate(this)
+            is UserRole -> view.setDelegate(this)
         }
     }
 
-    override fun deleteUser(username: String) {
-        userProxy.deleteItem(username)
-        roleProxy.deleteItem(username)
+    override fun findAll(): ArrayList<User>? {
+        return userProxy?.findAll()
     }
 
-    override fun getUserRoles(username: String): ArrayList<RoleEnum>? {
-        return roleProxy.getUserRoles(username)
+    override fun deleteById(id: Long?): Int? {
+        id?.let {
+            return userProxy?.deleteById(id)
+        } ?: run {
+            return null
+        }
+    }
+
+    override fun findById(id: Long?): User? {
+        id?.let {
+            return userProxy?.findById(id)
+        } ?: run {
+            return null
+        }
+    }
+
+    override fun save(user: User?, roles: List<Role>?): Long?  {
+        user?.let {
+            val id = userProxy?.save(user)
+
+            id?.let {
+                roles?.let {
+                    roleProxy?.updateByUserId(id, it)
+                }
+            }
+            return id
+        } ?: run {
+            return null
+        }
+    }
+
+    override fun update(user: User?, roles: List<Role>?): Int? {
+        user?.let {
+            val modified = userProxy?.update(user)
+
+            roles?.let {
+                roleProxy?.updateByUserId(user.id!!, roles)
+            }
+            return modified
+        } ?: run {
+            return null
+        }
+    }
+
+    override fun findAllDepartments(): List<Department>? {
+        return userProxy?.findAllDepartments()
+    }
+
+    override fun findAllRoles(): List<Role>? {
+        return roleProxy?.findAll()
+    }
+
+    override fun findRolesById(id: Long?): ArrayList<Role>? {
+        id?.let {
+            return roleProxy?.findByUserId(id)
+        } ?: run {
+            return null
+        }
     }
 
 }

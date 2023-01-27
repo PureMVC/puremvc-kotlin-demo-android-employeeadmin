@@ -9,9 +9,13 @@
     <string name="roles">Roles</string>
     <string name="save">Save</string>
     <string name="update">Update</string>
-    <string name="ok">Ok</string>
+    <string name="okay">OK</string>
     <string name="cancel">Cancel</string>
     <string name="error">Error</string>
-    <string name="error_password">Your password and confirmation password do not match.</string>
     <string name="error_invalid_data">Invalid Form Data.</string>
+    <string name="error_delete">Unable to delete the specified record.</string>
+    <string name="error_password">Your password and confirmation password do not match.</string>
+    <string name="new_user">New User</string>
+    <string name="department_list">Department List</string>
+    <string name="save_or_update">Save or Update</string>
 </resources>

@@ -11,55 +11,69 @@ package org.puremvc.kotlin.demos.android.employeeadmin.model
 import org.junit.Test
 
 import org.junit.Assert.*
-import org.puremvc.kotlin.demos.android.employeeadmin.model.enumerator.RoleEnum
-import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.RoleVO
+import org.junit.Before
+import org.mockito.Mockito.*
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
+import java.io.InputStream
+import java.io.OutputStream
+import java.net.HttpURLConnection
+import java.net.URL
 
 class RoleProxyTest {
 
-    @Test
-    fun testAddItem() {
-        val roleProxy = RoleProxy()
-        roleProxy.addItem(RoleVO("jstooge", arrayListOf(RoleEnum.SALES, RoleEnum.RETURNS, RoleEnum.SHIPPING)))
+    private lateinit var connection: HttpURLConnection
 
-        assertEquals(1, roleProxy.roles.size)
+    private lateinit var inputStream: InputStream
+
+    private lateinit var roleProxy: RoleProxy
+
+    @Before
+    fun setup() {
+        connection = mock(HttpURLConnection::class.java)
+        `when`(connection.responseCode).thenReturn(200)
+        val factory: (URL) -> HttpURLConnection = { connection }
+        val outputStream = mock(OutputStream::class.java)
+        `when`(connection.outputStream).thenReturn(outputStream)
+
+        roleProxy = RoleProxy(factory)
     }
 
     @Test
-    fun testGetRoleVO() {
-        val roleProxy = RoleProxy()
-        roleProxy.addItem(RoleVO("jstooge", arrayListOf(RoleEnum.SALES, RoleEnum.RETURNS, RoleEnum.SHIPPING)))
+    fun testFindAll() {
+        val data = """[{"id":1,"name":"Administrator"}]"""
+        inputStream = data.byteInputStream()
+        `when`(connection.inputStream).thenReturn(inputStream)
+        `when`(connection.responseCode).thenReturn(200)
 
-        val roles = roleProxy.getUserRoles("jstooge")!!
-        assertEquals(3, roles.size)
-        assertEquals(RoleEnum.SALES, roles[0])
-        assertEquals(RoleEnum.RETURNS, roles[1])
-        assertEquals(RoleEnum.SHIPPING, roles[2])
-    }
-
-    @Test
-    fun testUpdateUserRoles() {
-        val roleProxy = RoleProxy()
-        roleProxy.addItem(RoleVO("jstooge", arrayListOf(RoleEnum.SALES, RoleEnum.RETURNS, RoleEnum.SHIPPING)))
-        roleProxy.addItem(RoleVO("sstooge", arrayListOf(RoleEnum.ADMIN, RoleEnum.ACCT_PAY)))
-
-        roleProxy.updateUserRoles("sstooge", arrayListOf(RoleEnum.RETURNS))
-        val roles = roleProxy.getUserRoles("sstooge")!!
+        val roles =  roleProxy.findAll()
         assertEquals(1, roles.size)
-        assertEquals(RoleEnum.RETURNS, roles[0])
+        assertEquals(1L, roles[0].id)
+        assertEquals("Administrator", roles[0].name)
     }
 
     @Test
-    fun testDeleteItem() {
-        val roleProxy = RoleProxy()
-        roleProxy.addItem(RoleVO("jstooge", arrayListOf(RoleEnum.SALES, RoleEnum.RETURNS, RoleEnum.SHIPPING)))
-        roleProxy.addItem(RoleVO("sstooge", arrayListOf(RoleEnum.ADMIN, RoleEnum.ACCT_PAY)))
+    fun testFindByUserId() {
+        val data = """[{"id":1,"name":"Administrator"}]"""
+        inputStream = data.byteInputStream()
+        `when`(connection.inputStream).thenReturn(inputStream)
+        `when`(connection.responseCode).thenReturn(200)
 
-        roleProxy.deleteItem("sstooge")
-        assertNull(roleProxy.getUserRoles("sstooge"))
-        assertEquals(1, roleProxy.roles.size)
-
-        roleProxy.deleteItem("jstooge")
-        assertNull(roleProxy.getUserRoles("jstooge"))
-        assertEquals(0, roleProxy.roles.size)
+        roleProxy.findByUserId(1).let { roles ->
+            assertEquals(1, roles.size)
+            assertEquals("Administrator", roles[0].name)
+        }
     }
+
+    @Test
+    fun testUpdateRolesByUserId() {
+        val data = """[4, 5, 6]"""
+        inputStream = data.byteInputStream()
+        `when`(connection.inputStream).thenReturn(inputStream)
+        `when`(connection.responseCode).thenReturn(200)
+
+        val modified = roleProxy.updateByUserId(1, arrayListOf(Role(1L, "Administrator"), Role(2L, "Accounts Payable")))
+
+        assertEquals(1, modified)
+    }
+
 }

@@ -8,10 +8,9 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin
 
-import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import org.puremvc.kotlin.demos.android.employeeadmin.controller.RegisterCommand
 import org.puremvc.kotlin.demos.android.employeeadmin.controller.StartupCommand
-import org.puremvc.kotlin.multicore.interfaces.IFacade
 import org.puremvc.kotlin.multicore.patterns.facade.Facade
 import java.lang.ref.WeakReference
 
@@ -19,12 +18,14 @@ class ApplicationFacade(key: String) : Facade(key) {
 
     companion object {
 
+        const val KEY: String = "EmployeeAdmin"
+
         const val STARTUP: String = "startup"
 
         const val REGISTER: String = "register"
 
-        fun getInstance(key: String): IFacade {
-            return Facade.getInstance(key) { k -> ApplicationFacade(k) }
+        fun getInstance(key: String): ApplicationFacade {
+            return Facade.getInstance(key) { k -> ApplicationFacade(k) } as ApplicationFacade
         }
     }
 
@@ -34,8 +35,8 @@ class ApplicationFacade(key: String) : Facade(key) {
         registerCommand(REGISTER) { RegisterCommand() }
     }
 
-    fun registerActivity(activity: WeakReference<AppCompatActivity>) {
-        sendNotification(REGISTER, activity)
+    fun registerView(fragment: WeakReference<Fragment>) {
+        sendNotification(REGISTER, fragment)
     }
 
     fun startup(application: Application) {

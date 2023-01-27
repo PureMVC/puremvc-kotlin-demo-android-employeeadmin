@@ -8,8 +8,6 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.view.components
 
-import android.app.AlertDialog
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,108 +15,158 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
-import androidx.navigation.NavController
-import androidx.navigation.Navigation
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.setFragmentResultListener
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.*
+import org.puremvc.kotlin.demos.android.employeeadmin.ApplicationFacade
 import org.puremvc.kotlin.demos.android.employeeadmin.R
 import org.puremvc.kotlin.demos.android.employeeadmin.databinding.UserFormBinding
-import org.puremvc.kotlin.demos.android.employeeadmin.model.enumerator.DeptEnum
-import org.puremvc.kotlin.demos.android.employeeadmin.model.enumerator.RoleEnum
-import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.RoleVO
-import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserVO
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
+import java.lang.Exception
 import java.lang.ref.WeakReference
+
+interface IUserForm {
+    fun findById(id: Long?): User?
+    fun save(user: User?, roles: List<Role>?): Long?
+    fun update(user: User?, roles: List<Role>?): Int?
+    fun findAllDepartments(): List<Department>?
+}
 
 class UserForm: Fragment() {
 
-    private val userVO by lazy { arguments?.getParcelable<UserVO>("userVO") }
+    private var user: User? = null
 
-    private var roleEnums: ArrayList<RoleEnum>? = null
+    private var roles: List<Role>? = null
 
-    private lateinit var navController: NavController
+    private val viewModel: UserViewModel by activityViewModels()
 
-    private val delegate by lazy { WeakReference(activity as IUserForm) }
+    private var _binding: UserFormBinding? = null
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val binding = UserFormBinding.inflate(inflater, container, false).apply {
-            userVO = this@UserForm.userVO
-            val adapter = ArrayAdapter(activity!!, android.R.layout.simple_spinner_item, DeptEnum.comboList())
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            departments = adapter
+    private val binding get() = _binding!!
 
-            spinner.post {
-                this@UserForm.userVO?.let {
-                    for (i in 1 until adapter.count) {
-                        if (adapter.getItem(i) === it.department) {
-                            spinner.setSelection(i)
-                            break
-                        }
+    private var delegate: IUserForm? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        ApplicationFacade.getInstance(ApplicationFacade.KEY).registerView(WeakReference(this))
+    }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = UserFormBinding.inflate(inflater, container, false)
+
+        IdlingResource.increment()
+        val handler = CoroutineExceptionHandler { _, e -> (activity as? EmployeeAdmin)?.alert(e)?.show() }
+        lifecycleScope.launch(handler) {
+            launch { // Get UI Data
+                withContext(Dispatchers.IO) {
+                    val items = listOf("--None Selected--") + (delegate?.findAllDepartments()?.map { it.name } ?: listOf())
+                    withContext(Dispatchers.Main) { // Bind UI Data
+                        val adapter = ArrayAdapter(requireActivity(), android.R.layout.simple_spinner_item, items)
+                        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                        binding.spinner.adapter = adapter
                     }
                 }
             }
 
-            saveListener = View.OnClickListener {
-                val userVO = UserVO(username.text.toString(), first.text.toString(), last.text.toString(),
-                    email.text.toString(), password.text.toString(), spinner.selectedItem as DeptEnum)
-
-                if (userVO.password != confirm.text.toString()) {
-                    AlertDialog.Builder(activity!!)
-                        .setTitle(getString(R.string.error))
-                        .setMessage(getString(R.string.error_password))
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .setPositiveButton(android.R.string.yes, null)
-                        .create().show()
-                    return@OnClickListener
-                }
-
-                if (!userVO.isValid()!!) {
-                    AlertDialog.Builder(activity!!)
-                        .setTitle(getString(R.string.error))
-                        .setMessage(getString(R.string.error_invalid_data))
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .setPositiveButton(android.R.string.yes, null)
-                        .create().show()
-                    return@OnClickListener
-                }
-
-                if (!username.isEnabled) {
-                    val roleVO = if (roleEnums != null) RoleVO(userVO.username, roleEnums!!) else null
-                    delegate.get()?.update(userVO, roleVO)
-                    activity?.onBackPressed()
-                    return@OnClickListener
-                }
-
-                delegate.get()?.save(userVO, RoleVO(userVO.username, roleEnums ?: arrayListOf()))
-                activity?.onBackPressed()
+            savedInstanceState?.let { // Get User Data: State Restoration
+                user = it.getParcelable("user", User::class.java)
+                roles = it.getParcelableArrayList("roles", Role::class.java)
             }
 
-            cancelListener = View.OnClickListener {
-                activity?.onBackPressed()
+            user ?: run { // Get User Data: Network
+                arguments?.getLong("id")?.let {
+                    launch {
+                        withContext(Dispatchers.IO) {
+                            user = delegate?.findById(it)
+                        }
+                        withContext(Dispatchers.Main) {
+                            binding.username.isEnabled = false
+                        }
+                    }
+                }
+            }
+        }.invokeOnCompletion { // Upon completion to avoid race condition with UI Data thread
+            binding.progressBar.visibility = View.GONE
+            user ?: run { user = User() } // Default User Data
+            binding.user = user // Bind User Data
+            user?.department?.let {
+                binding.spinner.setSelection(it.id?.toInt() ?: 0)
             }
 
-            rolesListener = View.OnClickListener {
-                val userRole = UserRole()
-                userRole.arguments = bundleOf("username" to (userVO?.username), "roleEnums" to roleEnums)
-                userRole.setTargetFragment(this@UserForm, 1)
-                userRole.show(parentFragmentManager.beginTransaction(), "dialog")
+            setFragmentResultListener("roles", this::onFragmentResult) // Bind Event Handlers
+            binding.apply {
+                btnSave.setOnClickListener { save() }
+                btnCancel.setOnClickListener { findNavController().navigate(R.id.action_userForm_to_userList) }
+                btnRoles.setOnClickListener { selectRoles() }
             }
+
+            IdlingResource.decrement()
         }
 
-        binding.executePendingBindings()
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        navController = Navigation.findNavController(view)
+    private fun save() {
+        binding.apply {
+            user = User(arguments?.getLong("id"), username.text.toString(), first.text.toString(), last.text.toString(),
+                email.text.toString(), password.text.toString(), Department(spinner.selectedItemPosition.toLong(), spinner.selectedItem.toString()))
+
+            user?.validate(confirm.text.toString())?.let {
+                (activity as? EmployeeAdmin)?.alert(Exception(it))?.show()
+                return
+            }
+        }
+
+        IdlingResource.increment()
+        val handler = CoroutineExceptionHandler { _, e -> (activity as? EmployeeAdmin)?.alert(e)?.show() }
+        lifecycleScope.launch(handler) {
+            withContext(Dispatchers.IO) {
+                arguments?.getLong("id")?.let {
+                    delegate?.update(binding.user, roles)
+                } ?: run {
+                    user?.id = delegate?.save(binding.user, roles)
+                }
+            }
+        }.invokeOnCompletion {
+            user?.let { viewModel.setUser(it) }
+            findNavController().navigate(R.id.action_userForm_to_userList)
+            IdlingResource.decrement()
+        }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        roleEnums = data?.getParcelableArrayListExtra("roleEnums")
+    private fun selectRoles() {
+        val userRole = UserRole()
+        arguments?.getLong("id")?.let { id ->
+            userRole.arguments = bundleOf("id" to id, "roles" to roles)
+        } ?: run {
+            userRole.arguments = bundleOf( "roles" to roles)
+        }
+        userRole.show(parentFragmentManager.beginTransaction(), "dialog")
     }
 
-    interface IUserForm {
-        fun save(user: UserVO, roleVO: RoleVO)
-        fun update(user: UserVO, roleVO: RoleVO?)
+    private fun onFragmentResult(requestKey: String, bundle: Bundle) {
+        when (requestKey) {
+            "roles" -> roles = bundle.getParcelableArrayList("roles", Role::class.java)
+        }
+    }
+
+    override fun onSaveInstanceState(bundle: Bundle) {
+        bundle.putParcelable("user", binding.user)
+        roles?.let { bundle.putParcelableArrayList("roles", ArrayList<Role>(it)) }
+        super.onSaveInstanceState(bundle)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+    fun setDelegate(delegate: IUserForm) {
+        this.delegate = delegate
     }
 
 }
