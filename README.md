@@ -21,7 +21,6 @@ Production - [Version 1.1](https://github.com/PureMVC/puremvc-kotlin-demo-androi
 ## Platforms / Technologies
 * [Android](https://en.wikipedia.org/wiki/Android_(operating_system))
 * [Kotlin](https://en.wikipedia.org/wiki/Kotlin_(programming_language))
-* [SQLite](https://en.wikipedia.org/wiki/SQLite)
 
 ## License
 * PureMVC Kotlin Demo - Employee Admin Android App - Copyright © 2020 [Saad Shams](https://www.linkedin.com/in/muizz/)
