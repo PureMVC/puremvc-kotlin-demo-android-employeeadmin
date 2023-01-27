@@ -37,7 +37,7 @@ class RoleProxyIntegration {
     @Test
     fun testFindAll() {
         val roles = roleProxy.findAll()
-        assertEquals(14, roles!!.size)
+        assertEquals(14, roles.size)
         roles.forEach { role ->
             assertNotNull(role.id)
             assertNotNull(role.name)
@@ -46,7 +46,7 @@ class RoleProxyIntegration {
 
     @Test
     fun testFindAllByUserId() {
-        val roles = roleProxy.findByUserId(3)!!
+        val roles = roleProxy.findByUserId(3)
         assertEquals(3, roles.size)
         roles.forEach { role ->
             assertNotNull(role.id)
@@ -57,12 +57,12 @@ class RoleProxyIntegration {
     @Test
     fun testUpdateAndFindById() {
         roleProxy.updateByUserId(1, listOf(Role(1, "Administrator"), Role(2, "Accounts Payable")))
-        val roles = roleProxy.findByUserId(1)!!
+        val roles = roleProxy.findByUserId(1)
         assertEquals(2, roles.size)
 
         roleProxy.updateByUserId(1, listOf(Role(4, "Employee Benefits")))
 
-        val roles2 = roleProxy.findByUserId(1)!!
+        val roles2 = roleProxy.findByUserId(1)
         assertEquals(1, roles2.size)
     }
 

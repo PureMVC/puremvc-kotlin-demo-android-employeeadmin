@@ -24,8 +24,7 @@ class RegisterCommand: SimpleCommand() {
             if (facade.hasMediator(EmployeeAdminMediator.NAME))
                 facade.removeMediator(EmployeeAdminMediator.NAME)
 
-            @Suppress("UNCHECKED_CAST")
-            facade.registerMediator(EmployeeAdminMediator(fragment as WeakReference<Any?>))
+            facade.registerMediator(EmployeeAdminMediator(fragment))
         }
 
     }

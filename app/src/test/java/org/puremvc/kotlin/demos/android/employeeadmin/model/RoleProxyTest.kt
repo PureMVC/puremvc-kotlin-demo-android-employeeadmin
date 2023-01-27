@@ -46,7 +46,7 @@ class RoleProxyTest {
         `when`(connection.responseCode).thenReturn(200)
 
         val roles =  roleProxy.findAll()
-        assertEquals(1, roles!!.size)
+        assertEquals(1, roles.size)
         assertEquals(1L, roles[0].id)
         assertEquals("Administrator", roles[0].name)
     }
@@ -58,7 +58,7 @@ class RoleProxyTest {
         `when`(connection.inputStream).thenReturn(inputStream)
         `when`(connection.responseCode).thenReturn(200)
 
-        roleProxy.findByUserId(1)?.let { roles ->
+        roleProxy.findByUserId(1).let { roles ->
             assertEquals(1, roles.size)
             assertEquals("Administrator", roles[0].name)
         }

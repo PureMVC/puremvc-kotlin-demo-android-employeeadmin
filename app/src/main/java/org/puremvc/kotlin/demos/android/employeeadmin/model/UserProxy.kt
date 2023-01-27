@@ -8,8 +8,10 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.model
 
+import android.content.res.Resources
 import org.json.JSONArray
 import org.json.JSONObject
+import org.puremvc.kotlin.demos.android.employeeadmin.R
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 import org.puremvc.kotlin.multicore.patterns.proxy.Proxy
@@ -24,7 +26,7 @@ class UserProxy(private val factory: (URL) -> HttpURLConnection): Proxy(NAME, nu
         const val NAME = "UserProxy"
     }
 
-    fun findAll(): ArrayList<User>? {
+    fun findAll(): ArrayList<User> {
         val connection = factory(URL("http://10.0.2.2:8080/employees"))
         connection.requestMethod = "GET"
         connection.setRequestProperty("Accept", "application/json");
@@ -48,7 +50,7 @@ class UserProxy(private val factory: (URL) -> HttpURLConnection): Proxy(NAME, nu
         }
     }
 
-    fun findById(id: Long): User? {
+    fun findById(id: Long): User {
         val connection = factory(URL("http://10.0.2.2:8080/employees/$id"))
         connection.requestMethod = "GET"
         connection.setRequestProperty("Accept", "application/json")
@@ -66,7 +68,7 @@ class UserProxy(private val factory: (URL) -> HttpURLConnection): Proxy(NAME, nu
         }
     }
 
-    fun save(user: User): Long? {
+    fun save(user: User): Long {
         val connection = factory(URL("http://10.0.2.2:8080/employees"))
         connection.requestMethod = "POST"
         connection.doOutput = true
@@ -87,12 +89,12 @@ class UserProxy(private val factory: (URL) -> HttpURLConnection): Proxy(NAME, nu
                 if (connection.responseCode != 201)
                     throw Exception(response.toString())
 
-                return User(JSONObject(response.toString())).id
+                return User(JSONObject(response.toString())).id ?: 0
             }
         }
     }
 
-    fun update(user: User): Int? {
+    fun update(user: User): Int {
         val connection = factory(URL("http://10.0.2.2:8080/employees/${user.id}"))
         connection.requestMethod = "PUT"
         connection.doOutput = true
@@ -118,17 +120,17 @@ class UserProxy(private val factory: (URL) -> HttpURLConnection): Proxy(NAME, nu
         }
     }
 
-    fun deleteById(id: Long): Int? {
+    fun deleteById(id: Long): Int {
         val connection = factory(URL("http://10.0.2.2:8080/employees/$id"))
         connection.requestMethod = "DELETE"
 
         if (connection.responseCode != 204)
-            throw Exception("Unable to delete the specified record.")
+            throw Exception(Resources.getSystem().getString(R.string.error_delete))
 
         return 1
     }
 
-    fun findAllDepartments(): List<Department>? {
+    fun findAllDepartments(): List<Department> {
         val connection = factory(URL("http://10.0.2.2:8080/departments"))
         connection.requestMethod = "GET"
         connection.setRequestProperty("Accept", "application/json")

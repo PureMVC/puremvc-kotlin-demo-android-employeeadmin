@@ -8,10 +8,7 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.view.components
 
-import android.app.Activity
-import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,14 +16,15 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.CheckedTextView
 import android.widget.LinearLayout
+import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.setFragmentResult
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.*
-import org.puremvc.kotlin.demos.android.employeeadmin.Application
+import org.puremvc.kotlin.demos.android.employeeadmin.ApplicationFacade
 import org.puremvc.kotlin.demos.android.employeeadmin.databinding.UserRoleBinding
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
 import java.lang.ref.WeakReference
-import kotlin.coroutines.CoroutineContext
 
 interface IUserRole {
     fun findAllRoles(): List<Role>?
@@ -37,87 +35,78 @@ class UserRole: DialogFragment() {
 
     private var roles: ArrayList<Role>? = null
 
+    private var _binding: UserRoleBinding? = null
+
+    private val binding get() = _binding!!
+
     private var delegate: IUserRole? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        (activity?.application as Application).register(WeakReference(this))
+        ApplicationFacade.getInstance(ApplicationFacade.KEY).registerView(WeakReference(this))
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        val binding = UserRoleBinding.inflate(inflater, container, false).apply {
-            btnOk.setOnClickListener { ok() }
-            btnCancel.setOnClickListener { cancel() }
-            listView.setOnItemClickListener { parent, view, position, id ->
-                toggleRole(parent, view, position, id)
-            }
-        }
-
-        var list: List<Role>? = null
+        _binding = UserRoleBinding.inflate(inflater, container, false)
 
         IdlingResource.increment()
-        lifecycleScope.launch(handler) {
-
-            launch {
+        val handler = CoroutineExceptionHandler { _, e -> (activity as? EmployeeAdmin)?.alert(e)?.show() }
+        lifecycleScope.launch(handler) { // Concurrent UI and User Data requests
+            launch { // Get UI Data
                 withContext(Dispatchers.IO) {
-                    list = delegate?.findAllRoles() // UI data
+                    val items = delegate?.findAllRoles()?.map { it.name } ?: listOf()
+                    withContext(Dispatchers.Main) { // Bind UI Data
+                        val adapter = ArrayAdapter(requireActivity(), android.R.layout.simple_list_item_multiple_choice, items)
+                        binding.listView.adapter = adapter
+                    }
                 }
             }
 
-            // User data
-            arguments?.getSerializable("roles")?.let { // arguments: previous role selection
-                if (it is List<*>) {
-                    roles = ArrayList(it.filterIsInstance<Role>())
-                }
+            arguments?.getParcelableArrayList("roles", Role::class.java)?.let { // Get User Data: Previous selection
+                roles = it.toMutableList() as ArrayList<Role> // Copy array to avoid side effects (passed by reference)
             }
 
-            savedInstanceState?.let { // cache
-                val obj = it.getSerializable("roles")
-                if (obj is List<*>) {
-                    roles = ArrayList(obj.filterIsInstance<Role>())
-                }
+            savedInstanceState?.let { // Get User Data: State restoration
+                roles = it.getParcelableArrayList("roles", Role::class.java)
             }
 
-            if (roles == null) { // cache miss
+            roles ?: run { // Get User Data: Network
                 arguments?.getLong("id")?.let {
-                    launch { // network/database: existing user
+                    launch {
                         withContext(Dispatchers.IO) {
                             roles = delegate?.findRolesById(if(it != 0L) it else null)
                         }
                     }
                 }
             }
-
-        }.invokeOnCompletion { // Stitch/Bind UI and User Data
-            binding.listView.adapter = ArrayAdapter<String>(activity!!, android.R.layout.simple_list_item_multiple_choice, list?.map { it.name } ?: listOf()) // Bind UI Data to UI
-
-            if (roles == null) roles = arrayListOf()
-            roles?.forEach { // Bind User Data to UI
+        }.invokeOnCompletion { // Upon completion to avoid race condition with UI Data thread
+            binding.progressBar.visibility = View.GONE
+            roles = roles ?: arrayListOf() // Default User Data
+            roles?.forEach { // Bind User Data
                 binding.listView.setItemChecked(it.id?.toInt()?.minus(1) ?: 0, true)
             }
+
+            binding.apply { // Bind Event Handlers
+                btnOk.setOnClickListener {
+                    dialog?.dismiss()
+                    setFragmentResult("roles", bundleOf("roles" to roles))
+                }
+                btnCancel.setOnClickListener { dialog?.dismiss() }
+                listView.setOnItemClickListener { parent, view, position, id ->
+                    toggleRole(parent, view, position, id)
+                }
+            }
+
             IdlingResource.decrement()
         }
 
         return binding.root
     }
 
-    private fun ok() {
-        dialog?.dismiss()
-        targetFragment?.onActivityResult(1, Activity.RESULT_OK, Intent().putExtra("roles", roles))
-    }
-
-    private fun cancel() {
-        dialog?.dismiss()
-        targetFragment?.onActivityResult(1, Activity.RESULT_CANCELED, null)
-    }
-
     private fun toggleRole(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-        if (view.findViewById<CheckedTextView>(android.R.id.text1)?.isChecked == true) {
-            roles?.add(Role(id + 1, parent.adapter.getItem(position).toString()))
-        } else {
-            roles?.removeIf {
-                it.id == id + 1
-            }
+        when (view.findViewById<CheckedTextView>(android.R.id.text1)?.isChecked) {
+            true -> roles?.add(Role(id + 1, parent.adapter.getItem(position).toString()))
+            else -> roles?.removeIf { it.id == id + 1 }
         }
     }
 
@@ -127,27 +116,17 @@ class UserRole: DialogFragment() {
     }
 
     override fun onSaveInstanceState(bundle: Bundle) {
-        bundle.putSerializable("roles", roles) // cache
+        bundle.putSerializable("roles", roles)
         super.onSaveInstanceState(bundle)
     }
 
-    private fun fault(context: CoroutineContext, exception: Throwable) {
-        Log.d("UserRole", "Error: ${exception.localizedMessage} $context")
-        (activity as? EmployeeAdmin)?.fault(exception)
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
-
-    private val handler = CoroutineExceptionHandler { context, exception -> fault(context, exception) }
 
     fun setDelegate(delegate: IUserRole) {
         this.delegate = delegate
     }
 
 }
-
-/*
-UI Pattern with Concurrency (2 & 3 in Parallel)
-    1. Event Handlers within binding to pass bounded data
-    2. UI Data (hardcoded, Network/Database || Default)
-    3. User Data (Arguments/Cache hit, Network/Database on cache miss || Default) = field/variable
-    4. Stitch UI & User Data to binding
- */

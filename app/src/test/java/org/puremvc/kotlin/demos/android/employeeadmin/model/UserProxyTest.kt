@@ -11,9 +11,7 @@ package org.puremvc.kotlin.demos.android.employeeadmin.model
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.mockito.Mockito.*
-import org.mockito.runners.MockitoJUnitRunner
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 import java.io.InputStream
@@ -21,7 +19,6 @@ import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
-@RunWith(MockitoJUnitRunner::class)
 class UserProxyTest {
 
     private lateinit var connection: HttpURLConnection

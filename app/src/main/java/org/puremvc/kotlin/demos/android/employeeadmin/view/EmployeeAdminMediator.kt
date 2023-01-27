@@ -17,7 +17,7 @@ import org.puremvc.kotlin.demos.android.employeeadmin.view.components.*
 import org.puremvc.kotlin.multicore.patterns.mediator.Mediator
 import java.lang.ref.WeakReference
 
-class EmployeeAdminMediator(override var viewComponent: WeakReference<Any?>?): Mediator(NAME, viewComponent), IUserList, IUserForm, IUserRole {
+class EmployeeAdminMediator(override var viewComponent: WeakReference<*>?): Mediator(NAME, viewComponent), IUserList, IUserForm, IUserRole {
 
     companion object {
         const val NAME: String = "EmployeeAdminMediator"
@@ -30,10 +30,10 @@ class EmployeeAdminMediator(override var viewComponent: WeakReference<Any?>?): M
         userProxy = facade.retrieveProxy(UserProxy.NAME) as UserProxy
         roleProxy = facade.retrieveProxy(RoleProxy.NAME) as RoleProxy
 
-        when (val fragment = viewComponent?.get()) {
-            is UserList -> fragment.setDelegate(this)
-            is UserForm -> fragment.setDelegate(this)
-            is UserRole -> fragment.setDelegate(this)
+        when (val view = viewComponent?.get()) {
+            is UserList -> view.setDelegate(this)
+            is UserForm -> view.setDelegate(this)
+            is UserRole -> view.setDelegate(this)
         }
     }
 

@@ -37,7 +37,7 @@ class UserProxyIntegration {
     @Test
     fun testFindAll() {
         val users = userProxy.findAll()
-        assertEquals(3, users!!.size)
+        assertEquals(3, users.size)
         users.forEach { user ->
             assertNotNull(user.id)
             assertNotNull(user.first)
@@ -49,7 +49,7 @@ class UserProxyIntegration {
     fun testFindById() {
         val user = userProxy.findById(1)
         assertNotNull(user)
-        assertEquals(user!!.id, 1L)
+        assertEquals(user.id, 1L)
         assertEquals(user.first,  "Larry")
         assertEquals(user.last,  "Stooge")
     }
@@ -58,7 +58,7 @@ class UserProxyIntegration {
     fun testSaveAndFindByIdAndDelete() {
         val joe = User(null, "jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", Department(4, "Shipping"))
         val id = userProxy.save(joe)
-        val user = userProxy.findById(id!!)!!
+        val user = userProxy.findById(id)
 
         assertNotNull(user.id)
         assertNotNull(user.username)
@@ -74,7 +74,7 @@ class UserProxyIntegration {
         try {
             userProxy.findById(id)
             fail("Should have thrown an exception");
-        } catch (exception: Exception) {
+        } catch (_: Exception) {
         }
     }
 
@@ -85,7 +85,7 @@ class UserProxyIntegration {
 
         userProxy.update(User(id, "jstooge", "Joe1", "Stooge1", "joe1@stooges.com", "abc123", Department(5, "Quality Control")))
 
-        val user = userProxy.findById(id!!)!!
+        val user = userProxy.findById(id)
 
         assertEquals(id, user.id)
         assertEquals("jstooge", user.username)
@@ -101,7 +101,7 @@ class UserProxyIntegration {
     @Test
     fun testFindAllDepartments() {
         val departments = userProxy.findAllDepartments()
-        assertEquals(5, departments!!.size)
+        assertEquals(5, departments.size)
         departments.forEach { department ->
             assertNotNull(department.id)
             assertNotNull(department.name)

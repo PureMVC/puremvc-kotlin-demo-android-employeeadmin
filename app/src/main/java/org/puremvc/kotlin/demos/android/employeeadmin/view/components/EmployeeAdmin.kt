@@ -11,8 +11,12 @@ package org.puremvc.kotlin.demos.android.employeeadmin.view.components
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.test.espresso.idling.CountingIdlingResource
 import org.puremvc.kotlin.demos.android.employeeadmin.R
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 
 class EmployeeAdmin: AppCompatActivity() {
 
@@ -22,14 +26,25 @@ class EmployeeAdmin: AppCompatActivity() {
         supportActionBar?.title = "Employee Admin"
     }
 
-    fun fault(exception: Throwable) {
-        AlertDialog.Builder(this)
+    fun alert(exception: Throwable): AlertDialog {
+        return AlertDialog.Builder(this)
             .setTitle(exception.javaClass.simpleName)
             .setMessage(exception.localizedMessage)
             .setIcon(android.R.drawable.ic_dialog_alert)
-            .setPositiveButton("OK", null)
+            .setPositiveButton(R.string.okay, null)
             .create()
-            .show()
+    }
+
+}
+
+class UserViewModel : ViewModel() {
+
+    private val _user = MutableLiveData<User>()
+
+    val user: LiveData<User> get() = _user
+
+    fun setUser(user: User) {
+        _user.value = user
     }
 
 }

@@ -9,7 +9,7 @@
 package org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject
 
 import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import org.json.JSONObject
 import java.lang.Exception
 
@@ -17,8 +17,8 @@ import java.lang.Exception
 data class Role(var id: Long? = null, var name: String? = null): Parcelable {
 
     constructor(data: JSONObject): this() {
-        try { id = data.getLong("id") } catch (exception: Exception) {}
-        try { name = data.getString("name") } catch (exception: Exception) {}
+        try { id = data.getLong("id") } catch (_: Exception) {}
+        try { name = data.getString("name") } catch (_: Exception) {}
     }
 
     fun toJSONObject(): JSONObject {
