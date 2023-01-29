@@ -1,5 +1,5 @@
 //
-//  Role.kt
+//  RoleVO.kt
 //  PureMVC Android Demo - EmployeeAdmin
 //
 //  Copyright(c) 2020 Saad Shams <saad.shams@puremvc.org>
@@ -10,22 +10,7 @@ package org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
-import org.json.JSONObject
-import java.lang.Exception
+import org.puremvc.kotlin.demos.android.employeeadmin.model.enumerator.RoleEnum
 
 @Parcelize
-data class Role(var id: Long? = null, var name: String? = null): Parcelable {
-
-    constructor(data: JSONObject): this() {
-        try { id = data.getLong("id") } catch (_: Exception) {}
-        try { name = data.getString("name") } catch (_: Exception) {}
-    }
-
-    fun toJSONObject(): JSONObject {
-        val data = JSONObject()
-        data.put("id", id)
-        data.put("name", name)
-        return data
-    }
-
-}
+data class Role(val username: String? = null, var roles: ArrayList<RoleEnum>? = null): Parcelable

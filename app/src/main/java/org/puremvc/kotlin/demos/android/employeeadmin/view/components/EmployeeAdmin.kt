@@ -8,13 +8,12 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.view.components
 
+import android.app.AlertDialog
 import android.os.Bundle
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.test.espresso.idling.CountingIdlingResource
 import org.puremvc.kotlin.demos.android.employeeadmin.R
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 
@@ -47,19 +46,4 @@ class UserViewModel : ViewModel() {
         _user.value = user
     }
 
-}
-
-object IdlingResource {
-
-    val counter = CountingIdlingResource("Espresso")
-
-    fun increment() {
-        counter.increment()
-    }
-
-    fun decrement() {
-        if (!counter.isIdleNow) {
-            counter.decrement()
-        }
-    }
 }

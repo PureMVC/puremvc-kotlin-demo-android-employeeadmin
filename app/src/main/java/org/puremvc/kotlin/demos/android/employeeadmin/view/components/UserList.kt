@@ -21,12 +21,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.coroutines.*
 import org.puremvc.kotlin.demos.android.employeeadmin.ApplicationFacade
 import org.puremvc.kotlin.demos.android.employeeadmin.R
 import org.puremvc.kotlin.demos.android.employeeadmin.databinding.UserListBinding
@@ -35,7 +34,7 @@ import java.lang.ref.WeakReference
 
 interface IUserList {
     fun findAll(): ArrayList<User>?
-    fun deleteById(id: Long?): Int?
+    fun deleteByUsername(username: String)
 }
 
 class UserList: Fragment() {
@@ -58,76 +57,55 @@ class UserList: Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = UserListBinding.inflate(inflater, container, false)
 
-        IdlingResource.increment()
-        val handler = CoroutineExceptionHandler { _, exception ->
-            (activity as? EmployeeAdmin)?.alert(exception)?.show()
+        savedInstanceState?.let { // Get User Data: Cache
+            users = it.getParcelableArrayList("users", User::class.java)
         }
-        lifecycleScope.launch(handler) {
-            savedInstanceState?.let { // Get User Data: State Restoration
-                users = it.getParcelableArrayList("users", User::class.java)
-            }
 
-            users ?: run { // Get User Data: Network
-                launch {
-                    withContext(Dispatchers.IO) {
-                        users = delegate?.findAll()
-                    }
-                }
-            }
-        }.invokeOnCompletion { // Upon completion to avoid race condition with any UI Data thread
-            binding.progressBar.visibility = View.GONE
-            users = users ?: arrayListOf() // Default User Data
-            binding.recyclerView.swapAdapter(Adapter(users ?: arrayListOf(), findNavController()), false) // Bind User Data
-
-            binding.apply { // Bind Event Handlers
-                fab.setOnClickListener {
-                    findNavController().navigate(R.id.action_userList_to_userForm)
-                }
-                ItemTouchHelper(object : SwipeHelper(recyclerView.context) {
-                    override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                        deleteById(viewHolder.adapterPosition)
-                    }
-                }).attachToRecyclerView(recyclerView)
-            }
-            IdlingResource.decrement()
+        users ?: run { // Get User Data: IO
+            users = delegate?.findAll()
         }
+
+        users = users ?: arrayListOf() // Set User Data: Default
+
+        binding.recyclerView.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
+        binding.recyclerView.swapAdapter(Adapter(users!!, findNavController()), false) // Set User Data
 
         return binding.root
     }
 
-    private fun deleteById(index: Int) {
-        val handler = CoroutineExceptionHandler { _, exception ->
-            (activity as? EmployeeAdmin)?.alert(exception).also {
-                it?.setOnDismissListener{ binding.recyclerView.adapter?.notifyItemChanged(index) }
-            }?.show()
-        }
-        lifecycleScope.launch(handler) {
-            withContext(Dispatchers.IO) {
-                delegate?.deleteById(users?.get(index)?.id)
-                withContext(Dispatchers.Main) {
-                    users?.removeAt(index)
-                    binding.recyclerView.adapter?.notifyItemRemoved(index)
-                }
-            }
-        }
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.apply { // Set Event Handlers
+            fab.setOnClickListener { userForm() }
+            ItemTouchHelper(object : SwipeHelper(recyclerView.context) {
+                override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                    deleteById(viewHolder.adapterPosition)
+                }
+            }).attachToRecyclerView(recyclerView)
+        }
 
-        viewModel.user.observe(viewLifecycleOwner) { user ->
+        viewModel.user.observe(viewLifecycleOwner) { user -> // Set User Data: View
             users?.forEachIndexed { index, _ ->
-                if (users?.get(index)?.id == user.id) {
+                if (users?.get(index)?.username == user.username) {
                     users?.set(index, user)
                     return@observe
                 }
             }
-            users?.add(user)
+            users?.add(user) // Set User Data
             binding.recyclerView.adapter?.notifyItemInserted(users?.count()?.minus(1) ?: 0);
         }
     }
 
-    override fun onSaveInstanceState(bundle: Bundle) {
+    private fun userForm() {
+        findNavController().navigate(R.id.action_userList_to_userForm) // Get User Data: View
+    }
+
+    private fun deleteById(index: Int) { // Delete User Data: IO
+        delegate?.deleteByUsername(users?.get(index)?.username ?: "")
+        binding.recyclerView.adapter?.notifyItemRemoved(index)
+    }
+
+    override fun onSaveInstanceState(bundle: Bundle) { // Set User Data: Cache
         super.onSaveInstanceState(bundle)
         bundle.putSerializable("users", users)
     }
@@ -179,7 +157,7 @@ class UserList: Fragment() {
         override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
             viewHolder.name.text = "%s %s".format(users[position].first, users[position].last)
             viewHolder.name.setOnClickListener {
-                navController.navigate(R.id.action_userList_to_userForm, bundleOf("id" to users[position].id))
+                navController.navigate(R.id.action_userList_to_userForm, bundleOf("username" to users[position].username))
             }
         }
 

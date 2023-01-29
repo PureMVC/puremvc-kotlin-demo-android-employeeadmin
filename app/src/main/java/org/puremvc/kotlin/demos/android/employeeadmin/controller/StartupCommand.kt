@@ -8,34 +8,13 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.controller
 
-import org.puremvc.kotlin.demos.android.employeeadmin.Application
-import org.puremvc.kotlin.demos.android.employeeadmin.ApplicationFacade
-import org.puremvc.kotlin.demos.android.employeeadmin.model.RoleProxy
-import org.puremvc.kotlin.demos.android.employeeadmin.model.UserProxy
-import org.puremvc.kotlin.demos.android.employeeadmin.view.ApplicationMediator
-import org.puremvc.kotlin.multicore.interfaces.INotification
-import org.puremvc.kotlin.multicore.patterns.command.SimpleCommand
-import java.lang.ref.WeakReference
-import java.net.HttpURLConnection
-import java.net.URL
+import org.puremvc.kotlin.multicore.patterns.command.MacroCommand
 
-class StartupCommand: SimpleCommand() {
+class StartupCommand: MacroCommand() {
 
-    override fun execute(notification: INotification) {
-        val application = notification.body as Application
-
-        val factory: (URL) -> HttpURLConnection  = { url ->
-            val connection = url.openConnection() as HttpURLConnection
-            connection.readTimeout = 2500
-            connection.connectTimeout = 2500
-            connection
-        }
-
-        facade.registerProxy(UserProxy(factory))
-        facade.registerProxy(RoleProxy(factory))
-
-        facade.registerCommand(ApplicationFacade.REGISTER) { RegisterCommand() }
-        facade.registerMediator(ApplicationMediator(WeakReference(application)))
+    override fun initializeMacroCommand() {
+        addSubCommand { PrepModelCommand() }
+        addSubCommand { PrepViewCommand() }
     }
 
 }
