@@ -34,7 +34,7 @@ import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 import java.lang.ref.WeakReference
 
 interface IUserList {
-    fun findAll(): ArrayList<User>
+    fun findAll(): List<User>
     fun deleteById(id: Long): Int
 }
 
@@ -70,7 +70,7 @@ class UserList: Fragment() {
             launch { // Get User Data: IO
                 withContext(Dispatchers.IO) {
                     users ?: run {
-                        users = delegate?.findAll()
+                        users = delegate?.findAll() as ArrayList<User>?
                     }
                 }
             }
@@ -113,7 +113,7 @@ class UserList: Fragment() {
     private fun deleteById(index: Int) {
         lifecycleScope.launch(CoroutineExceptionHandler { _, e ->
             (activity as? EmployeeAdmin)?.alert(e).also {
-                it?.setOnDismissListener { binding.recyclerView.adapter?.notifyItemChanged(index) } // reset RV
+                it?.setOnDismissListener { binding.recyclerView.adapter?.notifyItemChanged(index) } // reset
             }?.show()
         }) {
             withContext(Dispatchers.IO) {
@@ -133,6 +133,7 @@ class UserList: Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        ApplicationFacade.getInstance(ApplicationFacade.KEY).remove(WeakReference(this))
     }
 
     fun setDelegate(delegate: IUserList) {

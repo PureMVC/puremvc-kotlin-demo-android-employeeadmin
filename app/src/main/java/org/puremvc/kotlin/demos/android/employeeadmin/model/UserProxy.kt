@@ -9,6 +9,7 @@
 package org.puremvc.kotlin.demos.android.employeeadmin.model
 
 import android.database.sqlite.SQLiteOpenHelper
+import kotlinx.coroutines.flow.Flow
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 import org.puremvc.kotlin.multicore.patterns.proxy.Proxy
@@ -19,17 +20,21 @@ class UserProxy(private val connection: SQLiteOpenHelper): Proxy(NAME, null) {
         const val NAME = "UserProxy"
     }
 
-    fun findAll(): ArrayList<User>? {
+    fun findAll(): List<User> {
         val sql = "SELECT id, first, last FROM user"
-        var users: ArrayList<User>? = null
+        var users: ArrayList<User> = arrayListOf()
         connection.readableDatabase.rawQuery(sql, null).use { cursor ->
             if (cursor.count > 0) users = ArrayList()
             while (cursor.moveToNext()) {
-                users?.add(User(cursor))
+                users.add(User(cursor))
             }
         }
         return users
     }
+
+//    fun findAll2(): Flow<ArrayList<User>> {
+//        return arrayListOf()
+//    }
 
     fun findById(id: Long): User? {
         var user: User? = null

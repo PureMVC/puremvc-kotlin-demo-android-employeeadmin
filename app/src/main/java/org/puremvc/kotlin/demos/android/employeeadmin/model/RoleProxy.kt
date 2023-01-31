@@ -30,7 +30,7 @@ class RoleProxy(private val connection: SQLiteOpenHelper): Proxy(NAME, null) {
         return roles
     }
 
-    fun findByUserId(id: Long): ArrayList<Role> {
+    fun findByUserId(id: Long): List<Role> {
         val roles: ArrayList<Role> = arrayListOf()
         connection.readableDatabase.rawQuery("SELECT id, name FROM role INNER JOIN user_role ON role.id = user_role.role_id WHERE user_id = ?", arrayOf(id.toString())).use { cursor ->
             while (cursor.moveToNext()) {

@@ -23,18 +23,24 @@ class RegisterCommand: SimpleCommand() {
         when((notification.body as WeakReference<*>).get()) {
             is UserList -> {
                 val name = EmployeeAdminMediator.NAME + "_UserList"
-                if (facade.hasMediator(name)) facade.removeMediator(name)
-                facade.registerMediator(EmployeeAdminMediator(name, notification.body as WeakReference<*>))
+                notification.type?.equals("false")?.let { facade.removeMediator(name) } ?: run {
+                    if (facade.hasMediator(name)) facade.removeMediator(name)
+                    facade.registerMediator(EmployeeAdminMediator(name, notification.body as WeakReference<*>))
+                }
             }
             is UserForm -> {
                 val name = EmployeeAdminMediator.NAME + "_UserForm"
-                if (facade.hasMediator(name)) facade.removeMediator(name)
-                facade.registerMediator(EmployeeAdminMediator(name, notification.body as WeakReference<*>))
+                notification.type?.equals("false")?.let { facade.removeMediator(name) } ?: run {
+                    if (facade.hasMediator(name)) facade.removeMediator(name)
+                    facade.registerMediator(EmployeeAdminMediator(name, notification.body as WeakReference<*>))
+                }
             }
             is UserRole -> {
                 val name = EmployeeAdminMediator.NAME + "_UserRole"
-                if (facade.hasMediator(name)) facade.removeMediator(name)
-                facade.registerMediator(EmployeeAdminMediator(name, notification.body as WeakReference<*>))
+                notification.type?.equals("false")?.let { facade.removeMediator(name) } ?: run {
+                    if (facade.hasMediator(name)) facade.removeMediator(name)
+                    facade.registerMediator(EmployeeAdminMediator(name, notification.body as WeakReference<*>))
+                }
             }
         }
 
