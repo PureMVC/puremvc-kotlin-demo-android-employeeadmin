@@ -73,8 +73,10 @@ class UserRole: DialogFragment() {
 
             launch { // Get User Data: IO
                 roles ?: run {
-                    arguments?.getLong("id")?.let {
-                        roles = delegate?.findRolesById(if(it != 0L) it else 0)
+                    arguments?.getLong("id")?.let { id -> // default 0L
+                        withContext(Dispatchers.IO) {
+                            roles = if(id != 0L) delegate?.findRolesById(id) else arrayListOf()
+                        }
                     }
                 }
             }
