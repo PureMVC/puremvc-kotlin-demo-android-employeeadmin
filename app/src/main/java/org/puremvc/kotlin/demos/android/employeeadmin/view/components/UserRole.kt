@@ -126,6 +126,7 @@ class UserRole: DialogFragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        ApplicationFacade.getInstance(ApplicationFacade.KEY).remove(WeakReference(this))
     }
 
     fun setDelegate(delegate: IUserRole) {

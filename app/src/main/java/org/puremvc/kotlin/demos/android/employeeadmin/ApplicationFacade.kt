@@ -39,6 +39,10 @@ class ApplicationFacade(key: String) : Facade(key) {
         sendNotification(REGISTER, view)
     }
 
+    fun remove(view: WeakReference<Fragment>) {
+        sendNotification(REGISTER, view, "false")
+    }
+
     fun startup(application: Application) {
         sendNotification(STARTUP, application)
     }
