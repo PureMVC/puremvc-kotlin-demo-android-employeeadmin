@@ -19,37 +19,35 @@ class RoleProxy(private val connection: SQLiteOpenHelper): Proxy(NAME, null) {
         const val NAME: String = "RoleProxy"
     }
 
-    fun findAll(): List<Role>? {
+    fun findAll(): List<Role> {
         val sql = "SELECT id, name FROM role"
-        var roles: ArrayList<Role>? = null
+        val roles: ArrayList<Role> = arrayListOf()
         connection.readableDatabase.rawQuery(sql, null).use { cursor ->
-            if (cursor.count > 0) roles = ArrayList()
             while (cursor.moveToNext()) {
-                roles?.add(Role(cursor))
+                roles.add(Role(cursor))
             }
         }
         return roles
     }
 
-    fun findByUserId(id: Long): ArrayList<Role>? {
-        var roles: ArrayList<Role>? = null
+    fun findByUserId(id: Long): ArrayList<Role> {
+        val roles: ArrayList<Role> = arrayListOf()
         connection.readableDatabase.rawQuery("SELECT id, name FROM role INNER JOIN user_role ON role.id = user_role.role_id WHERE user_id = ?", arrayOf(id.toString())).use { cursor ->
-            if (cursor.count > 0) roles = ArrayList()
             while (cursor.moveToNext()) {
-                roles?.add(Role(cursor))
+                roles.add(Role(cursor))
             }
         }
         return roles
     }
 
-    fun updateByUserId(id: Long, roles: List<Role>): Int? {
+    fun updateByUserId(id: Long, roles: List<Role>?): Int {
         try {
             connection.writableDatabase.execSQL("BEGIN TRANSACTION;")
             connection.writableDatabase.execSQL("DELETE FROM user_role WHERE user_id = $id;")
 
-            val values = (roles.map { role -> "($id, ${role.id})" }).joinToString(",")
+            val values = (roles?.map { role -> "($id, ${role.id})" })?.joinToString(",") ?: ""
 
-            if (values.count() > 0) connection.writableDatabase.execSQL("INSERT INTO user_role(user_id, role_id) VALUES$values")
+            if (values.isNotEmpty()) connection.writableDatabase.execSQL("INSERT INTO user_role(user_id, role_id) VALUES$values")
             connection.writableDatabase.execSQL("COMMIT")
         } catch(exception: Exception) {
             connection.writableDatabase.execSQL("ROLLBACK")

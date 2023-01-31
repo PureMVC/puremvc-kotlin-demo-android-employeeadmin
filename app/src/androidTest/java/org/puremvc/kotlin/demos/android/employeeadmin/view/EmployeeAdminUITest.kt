@@ -85,8 +85,8 @@ class EmployeeAdminUITest {
         onView(withId(R.id.username)).check(matches(not(isEnabled())))
         onView(withId(R.id.password)).perform(replaceText("abc123"))
         onView(withId(R.id.confirm)).perform(replaceText("abc123"))
-        onView(withId(R.id.spinner)).perform(click());
-        onData(anything()).atPosition(1).perform(click()); // Accounting
+        onView(withId(R.id.spinner)).perform(click())
+        onData(anything()).atPosition(1).perform(click()) // Accounting
         onView(withId(R.id.btnSave)).perform(click())
 
         // verify
@@ -104,7 +104,7 @@ class EmployeeAdminUITest {
         onView(withId(R.id.username)).check(matches(not(isEnabled())))
         onView(withId(R.id.password)).check(matches(withText("abc123")))
         onView(withId(R.id.confirm)).check(matches(withText("abc123")))
-        onView(withId(R.id.spinner)).check(matches(withSpinnerText(containsString("Accounting"))));
+        onView(withId(R.id.spinner)).check(matches(withSpinnerText(containsString("Accounting"))))
 
         // revert roles
         onView(withId(R.id.btnRoles)).perform(click())
@@ -119,8 +119,8 @@ class EmployeeAdminUITest {
         onView(withId(R.id.username)).check(matches(not(isEnabled())))
         onView(withId(R.id.password)).perform(replaceText("xyz987"))
         onView(withId(R.id.confirm)).perform(replaceText("xyz987"))
-        onView(withId(R.id.spinner)).perform(click());
-        onData(anything()).atPosition(2).perform(click()); // Sales
+        onView(withId(R.id.spinner)).perform(click())
+        onData(anything()).atPosition(2).perform(click()) // Sales
         onView(withId(R.id.btnSave)).perform(click())
     }
 
@@ -150,8 +150,8 @@ class EmployeeAdminUITest {
         onView(withId(R.id.username)).perform(replaceText("jstooge"))
         onView(withId(R.id.password)).perform(replaceText("abc123"))
         onView(withId(R.id.confirm)).perform(replaceText("abc123"))
-        onView(withId(R.id.spinner)).perform(click());
-        onData(anything()).atPosition(4).perform(click()); // +1, first entry is "--None Selected--"
+        onView(withId(R.id.spinner)).perform(click())
+        onData(anything()).atPosition(4).perform(click()) // +1, first entry is "--None Selected--"
         onView(withId(R.id.btnSave)).check(matches(withText("Save")))
         onView(withId(R.id.btnSave)).perform(click()) // save
 
@@ -167,7 +167,7 @@ class EmployeeAdminUITest {
         onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(0).check(matches(isChecked()))
         onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(1).check(matches(isChecked()))
         onData(anything()).inAdapterView(withId(R.id.listView)).atPosition(2).check(matches(not(isChecked())))
-        Espresso.pressBack();
+        Espresso.pressBack()
 
         // verify input data
         onView(withId(R.id.first)).check(matches(withText("Joe")))
@@ -177,7 +177,7 @@ class EmployeeAdminUITest {
         onView(withId(R.id.username)).check(matches(withText("jstooge")))
         onView(withId(R.id.password)).check(matches(withText("abc123")))
         onView(withId(R.id.confirm)).check(matches(withText("abc123")))
-        onView(withId(R.id.spinner)).check(matches(withSpinnerText(containsString("Shipping"))));
+        onView(withId(R.id.spinner)).check(matches(withSpinnerText(containsString("Shipping"))))
         onView(withId(R.id.btnSave)).check(matches(withText(R.string.update)))
         onView(withId(R.id.btnCancel)).perform(click())
 
@@ -203,8 +203,8 @@ class EmployeeAdminUITest {
         onView(withId(R.id.username)).perform(replaceText("sshemp"))
         onView(withId(R.id.password)).perform(replaceText("xyz987"))
         onView(withId(R.id.confirm)).perform(replaceText("xyz987"))
-        onView(withId(R.id.spinner)).perform(click());
-        onData(anything()).atPosition(1).perform(click());
+        onView(withId(R.id.spinner)).perform(click())
+        onData(anything()).atPosition(1).perform(click())
         onView(withId(R.id.btnSave)).perform(click())
 
         // verify new record
@@ -236,7 +236,7 @@ class EmployeeAdminUITest {
         onView(withId(R.id.fab)).perform(click())
         onView(withId(R.id.btnSave)).perform(click())
 
-        onView(withText(R.string.error_invalid_data)).check(matches(isDisplayed()))
+        onView(withText("Invalid Form Data.")).check(matches(isDisplayed()))
         onView(withId(android.R.id.button1)).perform(click())
     }
 
@@ -249,11 +249,11 @@ class EmployeeAdminUITest {
         onView(withId(R.id.username)).perform(replaceText("sshemp"))
         onView(withId(R.id.password)).perform(replaceText("abc123"))
         onView(withId(R.id.confirm)).perform(replaceText("ijk456"))
-        onView(withId(R.id.spinner)).perform(click());
-        onData(anything()).atPosition(1).perform(click());
+        onView(withId(R.id.spinner)).perform(click())
+        onData(anything()).atPosition(1).perform(click())
         onView(withId(R.id.btnSave)).perform(click())
 
-        onView(withText(R.string.error_password)).check(matches(isDisplayed()))
+        onView(withText("Your password and confirmation password do not match.")).check(matches(isDisplayed()))
         onView(withId(android.R.id.button1)).perform(click())
     }
 

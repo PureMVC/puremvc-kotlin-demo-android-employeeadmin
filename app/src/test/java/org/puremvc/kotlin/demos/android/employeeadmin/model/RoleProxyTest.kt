@@ -51,7 +51,7 @@ class RoleProxyTest {
         `when`(cursor.getString(2)).thenReturn("Administrator")
 
         val roles =  roleProxy.findAll()
-        assertEquals(1, roles!!.size)
+        assertEquals(1, roles.size)
         assertEquals(1L, roles[0].id)
         assertEquals("Administrator", roles[0].name)
     }
@@ -63,9 +63,9 @@ class RoleProxyTest {
         `when`(cursor.getColumnIndexOrThrow("name")).thenReturn(2)
         `when`(cursor.getString(2)).thenReturn("Administrator")
 
-        roleProxy.findByUserId(1)?.let { roles ->
+        roleProxy.findByUserId(1).let { roles ->
             assertEquals(1, roles.size)
-            assertEquals("Administrator", roles[0])
+            assertEquals("Administrator", roles[0].name)
         }
     }
 

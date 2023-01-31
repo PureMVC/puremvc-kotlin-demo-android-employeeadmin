@@ -64,11 +64,7 @@ class StartupCommand: SimpleCommand() {
             }
         } catch (exception: Exception) {
             Log.d("StartupCommand", "execute: ${exception.localizedMessage}")
-            Toast.makeText(
-                application.applicationContext,
-                exception.localizedMessage,
-                Toast.LENGTH_LONG
-            ).show()
+            Toast.makeText(application.applicationContext, exception.localizedMessage, Toast.LENGTH_LONG).show()
         }
 
     }

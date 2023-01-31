@@ -8,8 +8,10 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.controller
 
-import androidx.fragment.app.Fragment
 import org.puremvc.kotlin.demos.android.employeeadmin.view.EmployeeAdminMediator
+import org.puremvc.kotlin.demos.android.employeeadmin.view.components.UserForm
+import org.puremvc.kotlin.demos.android.employeeadmin.view.components.UserList
+import org.puremvc.kotlin.demos.android.employeeadmin.view.components.UserRole
 import org.puremvc.kotlin.multicore.interfaces.INotification
 import org.puremvc.kotlin.multicore.patterns.command.SimpleCommand
 import java.lang.ref.WeakReference
@@ -18,14 +20,22 @@ class RegisterCommand: SimpleCommand() {
 
     override fun execute(notification: INotification) {
 
-        val fragment = notification.body as WeakReference<*>
-
-        if (fragment.get() is Fragment) {
-            if (facade.hasMediator(EmployeeAdminMediator.NAME))
-                facade.removeMediator(EmployeeAdminMediator.NAME)
-
-            @Suppress("UNCHECKED_CAST")
-            facade.registerMediator(EmployeeAdminMediator(fragment as WeakReference<Any?>))
+        when((notification.body as WeakReference<*>).get()) {
+            is UserList -> {
+                val name = EmployeeAdminMediator.NAME + "_UserList"
+                if (facade.hasMediator(name)) facade.removeMediator(name)
+                facade.registerMediator(EmployeeAdminMediator(name, notification.body as WeakReference<*>))
+            }
+            is UserForm -> {
+                val name = EmployeeAdminMediator.NAME + "_UserForm"
+                if (facade.hasMediator(name)) facade.removeMediator(name)
+                facade.registerMediator(EmployeeAdminMediator(name, notification.body as WeakReference<*>))
+            }
+            is UserRole -> {
+                val name = EmployeeAdminMediator.NAME + "_UserRole"
+                if (facade.hasMediator(name)) facade.removeMediator(name)
+                facade.registerMediator(EmployeeAdminMediator(name, notification.body as WeakReference<*>))
+            }
         }
 
     }

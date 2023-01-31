@@ -41,43 +41,42 @@ class UserProxy(private val connection: SQLiteOpenHelper): Proxy(NAME, null) {
         return user
     }
 
-    fun save(user: User): Long? {
+    fun save(user: User): Long {
         val sql = "INSERT INTO user(username, first, last, email, password, department_id) VALUES(?, ?, ?, ?, ?, ?)"
         connection.writableDatabase.execSQL(sql, arrayOf(user.username, user.first, user.last, user.email, user.password, user.department?.id.toString()))
 
         connection.readableDatabase.rawQuery("SELECT last_insert_rowid()", null).use { cursor ->
-            if (cursor.moveToFirst())
-                return cursor.getLong(0)
-            else
-                return null
+            cursor.moveToFirst()
+            return cursor.getLong(0)
         }
     }
 
-    fun update(user: User): Int? {
+    fun update(user: User): Int {
         val sql = "UPDATE user SET first = ?, last = ?, email = ?, password = ?, department_id = ? WHERE id = ?"
         connection.writableDatabase.execSQL(sql, arrayOf(user.first, user.last, user.email, user.password, user.department?.id.toString(), user.id.toString()))
 
         connection.readableDatabase.rawQuery("SELECT changes()", null).use { cursor ->
-            return if (cursor.moveToFirst()) cursor.getInt(0) else null
+            cursor.moveToFirst()
+            return cursor.getInt(0)
         }
     }
 
-    fun deleteById(id: Long): Int? {
+    fun deleteById(id: Long): Int {
         val sql = "DELETE FROM user WHERE id = ?"
         connection.writableDatabase.execSQL(sql, arrayOf(id.toString()))
 
         connection.readableDatabase.rawQuery("SELECT changes()", null).use { cursor ->
-            return if (cursor.moveToFirst()) cursor.getInt(0) else null
+            cursor.moveToFirst()
+            return cursor.getInt(0)
         }
     }
 
-    fun findAllDepartments(): List<Department>? {
+    fun findAllDepartments(): List<Department> {
         val sql = "SELECT id, name FROM department"
-        var departments: ArrayList<Department>? = null
+        val departments: ArrayList<Department> = arrayListOf()
         connection.readableDatabase.rawQuery(sql, null).use { cursor ->
-            if (cursor.count != 0) departments = ArrayList()
             while (cursor.moveToNext()) {
-                departments?.add(Department(cursor))
+                departments.add(Department(cursor))
             }
         }
         return departments

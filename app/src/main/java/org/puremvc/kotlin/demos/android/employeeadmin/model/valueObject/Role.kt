@@ -17,8 +17,8 @@ import java.lang.Exception
 data class Role(var id: Long? = null, var name: String? = null): Parcelable {
 
     constructor(cursor: Cursor) : this() {
-        try { id = cursor.getLong(cursor.getColumnIndexOrThrow("id")) } catch (exception: Exception) {}
-        try { name = cursor.getString(cursor.getColumnIndexOrThrow("name")) } catch (exception: Exception) {}
+        try { id = cursor.getLong(cursor.getColumnIndexOrThrow("id")) } catch (_: Exception) {}
+        try { name = cursor.getString(cursor.getColumnIndexOrThrow("name")) } catch (_: Exception) {}
     }
 
 }

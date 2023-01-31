@@ -13,52 +13,80 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
-import androidx.navigation.Navigation
-import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.android.synthetic.main.user_list.*
 import kotlinx.coroutines.*
-import org.puremvc.kotlin.demos.android.employeeadmin.Application
+import org.puremvc.kotlin.demos.android.employeeadmin.ApplicationFacade
 import org.puremvc.kotlin.demos.android.employeeadmin.R
 import org.puremvc.kotlin.demos.android.employeeadmin.databinding.UserListBinding
-import org.puremvc.kotlin.demos.android.employeeadmin.databinding.UserListItemBinding
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 import java.lang.ref.WeakReference
-import kotlin.coroutines.CoroutineContext
 
 interface IUserList {
-    fun findAll(): ArrayList<User>?
-    fun deleteById(id: Long?): Int?
+    fun findAll(): ArrayList<User>
+    fun deleteById(id: Long): Int
 }
 
 class UserList: Fragment() {
 
     private var users: ArrayList<User>? = null
 
-    private var delegate: IUserList? = null
+    private val viewModel: UserViewModel by activityViewModels()
 
-    private lateinit var navController: NavController
+    private var _binding: UserListBinding? = null
+
+    private val binding get() = _binding!!
+
+    private var delegate: IUserList? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        (activity?.application as Application).register(WeakReference(this))
+        ApplicationFacade.getInstance(ApplicationFacade.KEY).register(WeakReference(this))
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        val binding = UserListBinding.inflate(inflater, container, false).apply {
-            fab.setOnClickListener { save() }
+        _binding = UserListBinding.inflate(inflater, container, false)
 
+        lifecycleScope.launch(CoroutineExceptionHandler { _, e ->
+            (activity as? EmployeeAdmin)?.alert(e)?.show()
+        }) {
+            IdlingResource.increment()
+
+            savedInstanceState?.let { // Get User Data: Cache
+                users = it.getParcelableArrayList("users", User::class.java)
+            }
+
+            launch { // Get User Data: IO
+                withContext(Dispatchers.IO) {
+                    users ?: run {
+                        users = delegate?.findAll()
+                    }
+                }
+            }
+        }.invokeOnCompletion { // Upon completion to avoid race condition with UI Data thread
+            binding.progressBar.visibility = View.GONE
+            users?.let { binding.recyclerView.swapAdapter(Adapter(it, findNavController()), false) } // Set User Data
+            IdlingResource.decrement()
+        }
+
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding.apply { // Set Event Handlers
+            fab.setOnClickListener { userForm() }
             ItemTouchHelper(object : SwipeHelper(recyclerView.context) {
                 override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                     deleteById(viewHolder.adapterPosition)
@@ -66,79 +94,46 @@ class UserList: Fragment() {
             }).attachToRecyclerView(recyclerView)
         }
 
-        savedInstanceState?.let { // User data: Cache
-            val obj = it.getSerializable("users")
-            if (obj is List<*>) {
-                users = ArrayList(obj.filterIsInstance<User>())
-            }
-        }
-
-        users?.let { // Cache hit
-            binding.recyclerView.swapAdapter(UserListAdapter(it), false)
-        } ?: run { // Cache miss
-            IdlingResource.increment()
-            lifecycleScope.launch(handler) {
-                withContext(Dispatchers.IO) {
-                    users = delegate?.findAll()
-                }
-            }.invokeOnCompletion {
-                binding.recyclerView.swapAdapter(UserListAdapter(users ?: arrayListOf()), false)
-                IdlingResource.decrement()
-            }
-        }
-
-        return binding.root
-    }
-
-    private fun save() {
-        navController.navigate(R.id.action_userList_to_userForm)
-    }
-
-    private fun deleteById(index: Int) {
-        lifecycleScope.launch(handler) {
-            withContext(Dispatchers.IO) {
-                try {
-                    delegate?.deleteById(users?.getOrNull(index)?.id)
-                } catch (exception: Exception) {
-                    withContext(Dispatchers.Main) {
-                        recyclerView.adapter?.notifyDataSetChanged()
-                        fault(null, exception) // throw exception
-                    }
-                }
-            }
-        }.invokeOnCompletion {
-            users?.removeAt(index)
-            recyclerView.adapter?.notifyItemRemoved(index)
-        }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        navController = Navigation.findNavController(view)
-
-        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<User>("user")?.observe(viewLifecycleOwner, Observer { user ->
+        viewModel.user.observe(viewLifecycleOwner) { user -> // Set User Data: View Result
             users?.forEachIndexed { index, _ ->
                 if (users?.get(index)?.id == user.id) {
                     users?.set(index, user)
-                    return@Observer
+                    return@observe
                 }
             }
-            users?.add(user)
-            recyclerView.adapter?.notifyDataSetChanged()
-        })
+            users?.add(user) // Set User Data
+            binding.recyclerView.adapter?.notifyItemInserted(users?.count()?.minus(1) ?: 0)
+        }
     }
 
-    override fun onSaveInstanceState(bundle: Bundle) {
+    private fun userForm() {
+        findNavController().navigate(R.id.action_userList_to_userForm)
+    }
+
+    private fun deleteById(index: Int) {
+        lifecycleScope.launch(CoroutineExceptionHandler { _, e ->
+            (activity as? EmployeeAdmin)?.alert(e).also {
+                it?.setOnDismissListener { binding.recyclerView.adapter?.notifyItemChanged(index) } // reset RV
+            }?.show()
+        }) {
+            withContext(Dispatchers.IO) {
+                delegate?.deleteById(users?.get(index)?.id ?: 0)
+            }
+        }.invokeOnCompletion {
+            users?.removeAt(index)
+            binding.recyclerView.adapter?.notifyItemRemoved(index)
+        }
+    }
+
+    override fun onSaveInstanceState(bundle: Bundle) { // Set User Data: Cache
         super.onSaveInstanceState(bundle)
         bundle.putSerializable("users", users)
     }
 
-    private fun fault(context: CoroutineContext?, exception: Throwable) {
-        Log.d("UserList", "Error: $context ${exception.localizedMessage}")
-        (activity as? EmployeeAdmin)?.fault(exception)
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
-
-    private val handler = CoroutineExceptionHandler { context, exception -> fault(context, exception) }
 
     fun setDelegate(delegate: IUserList) {
         this.delegate = delegate
@@ -172,32 +167,29 @@ class UserList: Fragment() {
 
     }
 
-    // Adapter
-    private class UserListAdapter(val userVOs: ArrayList<User>): RecyclerView.Adapter<UserListAdapter.UserViewHolder>() {
+    private class Adapter(val users: ArrayList<User>, val navController: NavController): RecyclerView.Adapter<Adapter.ViewHolder>() {
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
-            val binding = UserListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-            return UserViewHolder(binding, parent.findNavController())
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view = LayoutInflater.from(parent.context).inflate(android.R.layout.simple_list_item_1, parent, false)
+            return ViewHolder(view)
         }
 
-        override fun onBindViewHolder(userViewHolder: UserViewHolder, position: Int) {
-            userViewHolder.bind(userVOs[position])
-        }
-
-        override fun getItemCount(): Int {
-            return userVOs.size
-        }
-
-        // ViewHolder
-        private class UserViewHolder(val userListItem: UserListItemBinding, val navController: NavController): RecyclerView.ViewHolder(userListItem.root) {
-
-            fun bind(user: User) {
-                userListItem.fullname = user.toString()
-                userListItem.listener = View.OnClickListener {
-                    navController.navigate(R.id.action_userList_to_userForm, bundleOf("id" to user.id))
-                }
+        override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
+            viewHolder.name.text = "%s %s".format(users[position].first, users[position].last)
+            viewHolder.name.setOnClickListener {
+                navController.navigate(R.id.action_userList_to_userForm, bundleOf("id" to users[position].id))
             }
+        }
 
+        override fun getItemCount() = users.size
+
+        class ViewHolder(view: View): RecyclerView.ViewHolder(view) {
+
+            val name: TextView
+
+            init {
+                name = view.findViewById(android.R.id.text1)
+            }
         }
     }
 

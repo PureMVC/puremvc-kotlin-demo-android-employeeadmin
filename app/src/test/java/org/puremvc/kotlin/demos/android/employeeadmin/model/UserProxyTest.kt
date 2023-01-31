@@ -16,7 +16,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.*
-import org.mockito.runners.MockitoJUnitRunner
+import org.mockito.junit.MockitoJUnitRunner
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 
@@ -128,9 +128,9 @@ class UserProxyTest {
         `when`(cursor.getString(2)).thenReturn("Accounting")
 
         val departments = userProxy.findAllDepartments()
-        assertEquals(1, departments!!.size)
-        assertEquals(1L, departments.get(0).id)
-        assertEquals("Accounting", departments.get(0).name)
+        assertEquals(1, departments.size)
+        assertEquals(1L, departments[0].id)
+        assertEquals("Accounting", departments[0].name)
     }
 
 }
