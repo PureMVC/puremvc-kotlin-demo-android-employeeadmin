@@ -35,8 +35,8 @@ class ApplicationFacade(key: String) : Facade(key) {
         registerCommand(REGISTER) { RegisterCommand() }
     }
 
-    fun registerView(fragment: WeakReference<Fragment>) {
-        sendNotification(REGISTER, fragment)
+    fun register(view: WeakReference<Fragment>) {
+        sendNotification(REGISTER, view)
     }
 
     fun startup(application: Application) {

@@ -68,7 +68,7 @@ class RoleProxy(private val factory: (URL) -> HttpURLConnection) : Proxy(NAME, n
         }
     }
 
-    fun updateByUserId(id: Long, roles: List<Role>): Int {
+    fun updateByUserId(id: Long, roles: List<Role>?): Int {
         val connection = factory(URL("http://10.0.2.2:8080/employees/$id/roles"))
         connection.requestMethod = "PUT"
         connection.setRequestProperty("Accept", "application/json")
@@ -76,7 +76,7 @@ class RoleProxy(private val factory: (URL) -> HttpURLConnection) : Proxy(NAME, n
 
         BufferedOutputStream(connection.outputStream).use { stream ->
             BufferedWriter(OutputStreamWriter(stream, "UTF-8")).use { writer ->
-                writer.write(roles.map { it.id }.toString())
+                writer.write(roles?.map { it.id }.toString())
             }
         }
 

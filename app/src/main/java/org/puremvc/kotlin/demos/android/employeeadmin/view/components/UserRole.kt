@@ -28,7 +28,7 @@ import java.lang.ref.WeakReference
 
 interface IUserRole {
     fun findAllRoles(): List<Role>?
-    fun findRolesById(id: Long?): ArrayList<Role>?
+    fun findRolesById(id: Long): ArrayList<Role>?
 }
 
 class UserRole: DialogFragment() {
@@ -43,64 +43,67 @@ class UserRole: DialogFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        ApplicationFacade.getInstance(ApplicationFacade.KEY).registerView(WeakReference(this))
+        ApplicationFacade.getInstance(ApplicationFacade.KEY).register(WeakReference(this))
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = UserRoleBinding.inflate(inflater, container, false)
 
-        IdlingResource.increment()
-        val handler = CoroutineExceptionHandler { _, e -> (activity as? EmployeeAdmin)?.alert(e)?.show() }
-        lifecycleScope.launch(handler) { // Concurrent UI and User Data requests
+        lifecycleScope.launch(CoroutineExceptionHandler { _, e ->
+            (activity as? EmployeeAdmin)?.alert(e)?.show()
+        }) { // Concurrent UI and User Data requests
+            IdlingResource.increment()
+
             launch { // Get UI Data
                 withContext(Dispatchers.IO) {
                     val items = delegate?.findAllRoles()?.map { it.name } ?: listOf()
-                    withContext(Dispatchers.Main) { // Bind UI Data
+                    withContext(Dispatchers.Main) { // Set UI Data
                         val adapter = ArrayAdapter(requireActivity(), android.R.layout.simple_list_item_multiple_choice, items)
                         binding.listView.adapter = adapter
                     }
                 }
             }
 
-            arguments?.getParcelableArrayList("roles", Role::class.java)?.let { // Get User Data: Previous selection
+            arguments?.getParcelableArrayList("roles", Role::class.java)?.let { // Get User Data: Arguments
                 roles = it.toMutableList() as ArrayList<Role> // Copy array to avoid side effects (passed by reference)
             }
 
-            savedInstanceState?.let { // Get User Data: State restoration
+            savedInstanceState?.let { // Get User Data: Cache
                 roles = it.getParcelableArrayList("roles", Role::class.java)
             }
 
-            roles ?: run { // Get User Data: Network
-                arguments?.getLong("id")?.let {
-                    launch {
+            launch { // Get User Data: IO
+                roles ?: run {
+                    arguments?.getLong("id")?.let { id -> // default 0L
                         withContext(Dispatchers.IO) {
-                            roles = delegate?.findRolesById(if(it != 0L) it else null)
+                            roles = if(id != 0L) delegate?.findRolesById(id) else arrayListOf()
                         }
                     }
                 }
             }
         }.invokeOnCompletion { // Upon completion to avoid race condition with UI Data thread
             binding.progressBar.visibility = View.GONE
-            roles = roles ?: arrayListOf() // Default User Data
-            roles?.forEach { // Bind User Data
+            roles?.forEach { // Set User Data
                 binding.listView.setItemChecked(it.id?.toInt()?.minus(1) ?: 0, true)
             }
-
-            binding.apply { // Bind Event Handlers
-                btnOk.setOnClickListener {
-                    dialog?.dismiss()
-                    setFragmentResult("roles", bundleOf("roles" to roles))
-                }
-                btnCancel.setOnClickListener { dialog?.dismiss() }
-                listView.setOnItemClickListener { parent, view, position, id ->
-                    toggleRole(parent, view, position, id)
-                }
-            }
-
             IdlingResource.decrement()
         }
 
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding.apply { // Set Event Handlers
+            btnOk.setOnClickListener {
+                dialog?.dismiss()
+                setFragmentResult("roles", bundleOf("roles" to roles))
+            }
+            btnCancel.setOnClickListener { dialog?.dismiss() }
+            listView.setOnItemClickListener { parent, view, position, id ->
+                toggleRole(parent, view, position, id)
+            }
+        }
     }
 
     private fun toggleRole(parent: AdapterView<*>, view: View, position: Int, id: Long) {

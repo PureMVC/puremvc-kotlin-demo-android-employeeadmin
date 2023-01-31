@@ -17,7 +17,7 @@ import org.puremvc.kotlin.demos.android.employeeadmin.view.components.*
 import org.puremvc.kotlin.multicore.patterns.mediator.Mediator
 import java.lang.ref.WeakReference
 
-class EmployeeAdminMediator(override var viewComponent: WeakReference<*>?): Mediator(NAME, viewComponent), IUserList, IUserForm, IUserRole {
+class EmployeeAdminMediator(name: String, override var viewComponent: WeakReference<*>?): Mediator(name, viewComponent), IUserList, IUserForm, IUserRole {
 
     companion object {
         const val NAME: String = "EmployeeAdminMediator"
@@ -41,48 +41,26 @@ class EmployeeAdminMediator(override var viewComponent: WeakReference<*>?): Medi
         return userProxy?.findAll()
     }
 
-    override fun deleteById(id: Long?): Int? {
-        id?.let {
-            return userProxy?.deleteById(id)
-        } ?: run {
-            return null
-        }
+    override fun deleteById(id: Long): Int? {
+        return userProxy?.deleteById(id) ?: 0
     }
 
-    override fun findById(id: Long?): User? {
-        id?.let {
-            return userProxy?.findById(id)
-        } ?: run {
-            return null
-        }
+    override fun findById(id: Long): User? {
+        return userProxy?.findById(id)
     }
 
-    override fun save(user: User?, roles: List<Role>?): Long?  {
-        user?.let {
-            val id = userProxy?.save(user)
-
-            id?.let {
-                roles?.let {
-                    roleProxy?.updateByUserId(id, it)
-                }
-            }
-            return id
-        } ?: run {
-            return null
+    override fun save(user: User, roles: List<Role>?): Long  {
+        val id = userProxy?.save(user)?.also { id ->
+            roles?.let { roleProxy?.updateByUserId(id, it) }
         }
+        return id ?: 0
     }
 
-    override fun update(user: User?, roles: List<Role>?): Int? {
-        user?.let {
-            val modified = userProxy?.update(user)
-
-            roles?.let {
-                roleProxy?.updateByUserId(user.id!!, roles)
-            }
-            return modified
-        } ?: run {
-            return null
+    override fun update(user: User, roles: List<Role>?): Int {
+        val modified = userProxy?.update(user)?.also {
+            roleProxy?.updateByUserId(user.id!!, roles)
         }
+        return modified ?: 0
     }
 
     override fun findAllDepartments(): List<Department>? {
@@ -93,12 +71,8 @@ class EmployeeAdminMediator(override var viewComponent: WeakReference<*>?): Medi
         return roleProxy?.findAll()
     }
 
-    override fun findRolesById(id: Long?): ArrayList<Role>? {
-        id?.let {
-            return roleProxy?.findByUserId(id)
-        } ?: run {
-            return null
-        }
+    override fun findRolesById(id: Long): ArrayList<Role>? {
+        return roleProxy?.findByUserId(id)
     }
 
 }
