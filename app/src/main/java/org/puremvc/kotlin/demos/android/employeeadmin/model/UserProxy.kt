@@ -18,7 +18,6 @@ import org.puremvc.kotlin.multicore.patterns.proxy.Proxy
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
-import kotlin.collections.ArrayList
 
 class UserProxy(private val factory: (URL) -> HttpURLConnection): Proxy(NAME, null) {
 
@@ -26,7 +25,7 @@ class UserProxy(private val factory: (URL) -> HttpURLConnection): Proxy(NAME, nu
         const val NAME = "UserProxy"
     }
 
-    fun findAll(): ArrayList<User> {
+    fun findAll(): List<User> {
         val connection = factory(URL("http://10.0.2.2:8080/employees"))
         connection.requestMethod = "GET"
         connection.setRequestProperty("Accept", "application/json");

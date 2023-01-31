@@ -34,8 +34,8 @@ import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 import java.lang.ref.WeakReference
 
 interface IUserList {
-    fun findAll(): ArrayList<User>?
-    fun deleteById(id: Long): Int?
+    fun findAll(): List<User>
+    fun deleteById(id: Long): Int
 }
 
 class UserList: Fragment() {
@@ -70,7 +70,7 @@ class UserList: Fragment() {
             launch { // Get User Data: IO
                 withContext(Dispatchers.IO) {
                     users ?: run {
-                        users = delegate?.findAll()
+                        users = delegate?.findAll() as ArrayList<User>
                     }
                 }
             }

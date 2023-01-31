@@ -27,8 +27,8 @@ import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
 import java.lang.ref.WeakReference
 
 interface IUserRole {
-    fun findAllRoles(): List<Role>?
-    fun findRolesById(id: Long): ArrayList<Role>?
+    fun findAllRoles(): List<Role>
+    fun findRolesById(id: Long): List<Role>
 }
 
 class UserRole: DialogFragment() {
@@ -76,7 +76,7 @@ class UserRole: DialogFragment() {
                 roles ?: run {
                     arguments?.getLong("id")?.let { id -> // default 0L
                         withContext(Dispatchers.IO) {
-                            roles = if(id != 0L) delegate?.findRolesById(id) else arrayListOf()
+                            roles = if(id != 0L) delegate?.findRolesById(id) as ArrayList<Role>? else arrayListOf()
                         }
                     }
                 }

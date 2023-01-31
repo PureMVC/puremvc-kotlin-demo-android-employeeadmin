@@ -45,7 +45,7 @@ class RoleProxy(private val factory: (URL) -> HttpURLConnection) : Proxy(NAME, n
         }
     }
 
-    fun findByUserId(id: Long): ArrayList<Role> {
+    fun findByUserId(id: Long): List<Role> {
         val connection = factory(URL("http://10.0.2.2:8080/employees/$id/roles"))
         connection.requestMethod = "GET"
         connection.setRequestProperty("Accept", "application/json")

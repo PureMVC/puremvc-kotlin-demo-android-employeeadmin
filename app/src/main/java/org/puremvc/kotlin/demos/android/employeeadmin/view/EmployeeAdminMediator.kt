@@ -37,11 +37,11 @@ class EmployeeAdminMediator(name: String, override var viewComponent: WeakRefere
         }
     }
 
-    override fun findAll(): ArrayList<User>? {
-        return userProxy?.findAll()
+    override fun findAll(): List<User> {
+        return userProxy?.findAll() ?: listOf()
     }
 
-    override fun deleteById(id: Long): Int? {
+    override fun deleteById(id: Long): Int {
         return userProxy?.deleteById(id) ?: 0
     }
 
@@ -63,16 +63,16 @@ class EmployeeAdminMediator(name: String, override var viewComponent: WeakRefere
         return modified ?: 0
     }
 
-    override fun findAllDepartments(): List<Department>? {
-        return userProxy?.findAllDepartments()
+    override fun findAllDepartments(): List<Department> {
+        return userProxy?.findAllDepartments() ?: listOf()
     }
 
-    override fun findAllRoles(): List<Role>? {
-        return roleProxy?.findAll()
+    override fun findAllRoles(): List<Role> {
+        return roleProxy?.findAll() ?: listOf()
     }
 
-    override fun findRolesById(id: Long): ArrayList<Role>? {
-        return roleProxy?.findByUserId(id)
+    override fun findRolesById(id: Long): List<Role> {
+        return roleProxy?.findByUserId(id) ?: listOf()
     }
 
 }
