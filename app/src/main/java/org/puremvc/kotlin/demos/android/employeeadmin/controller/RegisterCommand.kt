@@ -8,7 +8,6 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.controller
 
-import androidx.fragment.app.Fragment
 import org.puremvc.kotlin.demos.android.employeeadmin.view.EmployeeAdminMediator
 import org.puremvc.kotlin.demos.android.employeeadmin.view.components.UserForm
 import org.puremvc.kotlin.demos.android.employeeadmin.view.components.UserList
