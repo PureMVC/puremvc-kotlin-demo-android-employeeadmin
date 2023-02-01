@@ -32,8 +32,8 @@ import java.lang.ref.WeakReference
 
 interface IUserForm {
     fun findById(id: Long): User?
-    fun save(user: User, roles: List<Role>?): Long?
-    fun update(user: User, roles: List<Role>?): Int?
+    fun save(user: User, roles: List<Role>?): Long
+    fun update(user: User, roles: List<Role>?): Int
     fun findAllDepartments(): List<Department>
 }
 

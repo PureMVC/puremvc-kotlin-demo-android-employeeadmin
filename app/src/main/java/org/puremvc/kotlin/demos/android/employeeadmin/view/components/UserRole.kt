@@ -27,7 +27,7 @@ import java.lang.ref.WeakReference
 
 interface IUserRole {
     fun findAllRoles(): List<Role>
-    fun findRolesById(id: Long): List<Role>?
+    fun findRolesById(id: Long): List<Role>
 }
 
 class UserRole: DialogFragment() {
@@ -75,7 +75,7 @@ class UserRole: DialogFragment() {
                 roles ?: run {
                     arguments?.getLong("id")?.let { id -> // default 0L
                         withContext(Dispatchers.IO) {
-                            roles = if(id != 0L) delegate?.findRolesById(id) as ArrayList<Role>? else arrayListOf()
+                            roles = if(id != 0L) delegate?.findRolesById(id) as ArrayList<Role>? else arrayListOf() // default
                         }
                     }
                 }

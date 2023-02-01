@@ -70,7 +70,7 @@ class UserList: Fragment() {
             launch { // Get User Data: IO
                 withContext(Dispatchers.IO) {
                     users ?: run {
-                        users = delegate?.findAll() as ArrayList<User>?
+                        users = delegate?.findAll()?.let { ArrayList(it) }
                     }
                 }
             }

@@ -64,15 +64,15 @@ class EmployeeAdminMediator(name: String, override var viewComponent: WeakRefere
     }
 
     override fun findAllDepartments(): List<Department> {
-        return userProxy?.findAllDepartments() ?: arrayListOf()
+        return userProxy?.findAllDepartments() ?: listOf()
     }
 
     override fun findAllRoles(): List<Role> {
-        return roleProxy?.findAll() ?: arrayListOf()
+        return roleProxy?.findAll() ?: listOf()
     }
 
     override fun findRolesById(id: Long): List<Role> {
-        return roleProxy?.findByUserId(id) ?: arrayListOf()
+        return roleProxy?.findByUserId(id) ?: listOf()
     }
 
 }
