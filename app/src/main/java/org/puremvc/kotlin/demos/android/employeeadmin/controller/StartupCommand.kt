@@ -31,7 +31,7 @@ class StartupCommand: SimpleCommand() {
 
             override fun onConfigure(db: SQLiteDatabase?) {
                 super.onConfigure(db)
-                db?.execSQL("PRAGMA foreign_keys = ON")
+                db?.setForeignKeyConstraintsEnabled(true)
             }
 
             override fun onCreate(db: SQLiteDatabase?) {

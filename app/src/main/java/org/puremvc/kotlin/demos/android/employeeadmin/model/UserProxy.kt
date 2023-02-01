@@ -32,10 +32,6 @@ class UserProxy(private val connection: SQLiteOpenHelper): Proxy(NAME, null) {
         return users
     }
 
-//    fun findAll2(): Flow<ArrayList<User>> {
-//        return arrayListOf()
-//    }
-
     fun findById(id: Long): User? {
         var user: User? = null
         connection.readableDatabase.rawQuery("SELECT user.*, department.name AS 'department_name' FROM user INNER JOIN department ON user.department_id = department.id WHERE user.id = ?", arrayOf(id.toString())).use { cursor ->
