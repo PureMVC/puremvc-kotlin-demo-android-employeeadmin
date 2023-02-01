@@ -11,9 +11,12 @@ package org.puremvc.kotlin.demos.android.employeeadmin.view.components
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.navigation.findNavController
+import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.test.espresso.idling.CountingIdlingResource
 import org.puremvc.kotlin.demos.android.employeeadmin.R
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
@@ -23,7 +26,11 @@ class EmployeeAdmin: AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.employee_admin)
-        supportActionBar?.title = "Employee Admin"
+        setupActionBarWithNavController(findNavController(R.id.nav_graph))
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        return findNavController(R.id.nav_graph).navigateUp() || super.onSupportNavigateUp()
     }
 
     fun alert(exception: Throwable): AlertDialog {

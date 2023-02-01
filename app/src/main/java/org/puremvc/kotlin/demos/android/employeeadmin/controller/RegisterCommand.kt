@@ -22,21 +22,21 @@ class RegisterCommand: SimpleCommand() {
 
         when((notification.body as WeakReference<*>).get()) {
             is UserList -> {
-                val name = EmployeeAdminMediator.NAME + "_UserList"
+                val name = EmployeeAdminMediator.NAME + "_" + UserList.TAG
                 notification.type?.equals("false")?.let { facade.removeMediator(name) } ?: run {
                     if (facade.hasMediator(name)) facade.removeMediator(name)
                     facade.registerMediator(EmployeeAdminMediator(name, notification.body as WeakReference<*>))
                 }
             }
             is UserForm -> {
-                val name = EmployeeAdminMediator.NAME + "_UserForm"
+                val name = EmployeeAdminMediator.NAME + "_" + UserForm.TAG
                 notification.type?.equals("false")?.let { facade.removeMediator(name) } ?: run {
                     if (facade.hasMediator(name)) facade.removeMediator(name)
                     facade.registerMediator(EmployeeAdminMediator(name, notification.body as WeakReference<*>))
                 }
             }
             is UserRole -> {
-                val name = EmployeeAdminMediator.NAME + "_UserRole"
+                val name = EmployeeAdminMediator.NAME + "_" + UserRole.TAG
                 notification.type?.equals("false")?.let { facade.removeMediator(name) } ?: run {
                     if (facade.hasMediator(name)) facade.removeMediator(name)
                     facade.registerMediator(EmployeeAdminMediator(name, notification.body as WeakReference<*>))

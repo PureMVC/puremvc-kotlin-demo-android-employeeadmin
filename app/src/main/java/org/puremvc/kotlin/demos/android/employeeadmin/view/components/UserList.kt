@@ -50,6 +50,10 @@ class UserList: Fragment() {
 
     private var delegate: IUserList? = null
 
+    companion object {
+        const val TAG = "UserList"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ApplicationFacade.getInstance(ApplicationFacade.KEY).register(WeakReference(this))

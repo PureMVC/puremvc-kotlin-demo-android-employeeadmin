@@ -6,18 +6,21 @@
     <fragment
         android:id="@+id/userList"
         android:name="org.puremvc.kotlin.demos.android.employeeadmin.view.components.UserList"
-        android:label="UserList">
+        android:label="User List">
 
         <action
-            android:id="@+id/action_userList_to_userForm" app:destination="@id/userForm"
-            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"
-            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left" />
+            android:id="@+id/action_userList_to_userForm"
+            app:destination="@id/userForm"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
 
     <fragment
         android:id="@+id/userForm"
         android:name="org.puremvc.kotlin.demos.android.employeeadmin.view.components.UserForm"
-        android:label="UserForm">
+        android:label="User Form">
         <action
             android:id="@+id/action_userForm_to_userList"
             app:popUpTo="@id/userList"

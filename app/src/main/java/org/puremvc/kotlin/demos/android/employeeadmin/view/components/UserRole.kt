@@ -40,6 +40,10 @@ class UserRole: DialogFragment() {
 
     private var delegate: IUserRole? = null
 
+    companion object {
+        const val TAG = "UserRole"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ApplicationFacade.getInstance(ApplicationFacade.KEY).register(WeakReference(this))

@@ -8,6 +8,7 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.view.components
 
+import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -15,6 +16,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -50,6 +52,10 @@ class UserForm: Fragment() {
     private val binding get() = _binding!!
 
     private var delegate: IUserForm? = null
+
+    companion object {
+        const val TAG = "UserForm"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -148,7 +154,7 @@ class UserForm: Fragment() {
         } ?: run {
             userRole.arguments = bundleOf( "roles" to roles)
         }
-        userRole.show(parentFragmentManager.beginTransaction(), "dialog") // Get Data: View
+        userRole.show(childFragmentManager, "dialog") // Get Data: View
     }
 
     private fun onFragmentResult(requestKey: String, bundle: Bundle) { // Set Data: View
