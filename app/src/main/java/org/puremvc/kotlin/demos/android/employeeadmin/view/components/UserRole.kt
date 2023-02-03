@@ -87,7 +87,7 @@ class UserRole: DialogFragment() {
         }.invokeOnCompletion { // Upon completion to avoid race condition with UI Data thread
             binding.progressBar.visibility = View.GONE
             roles?.forEach { // Set User Data
-                binding.listView.setItemChecked(it.id?.toInt()?.minus(1) ?: 0, true)
+                binding.listView.setItemChecked(it.id.toInt().minus(1), true)
             }
             IdlingResource.decrement()
         }

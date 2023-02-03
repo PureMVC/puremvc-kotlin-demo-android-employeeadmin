@@ -99,7 +99,7 @@ class UserForm: Fragment() {
         }.invokeOnCompletion { // Upon completion to avoid race condition with UI Data thread
             binding.progressBar.visibility = View.GONE
             binding.user = user // Set User Data
-            user?.department?.let { binding.spinner.setSelection(it.id?.toInt() ?: 0) }
+            // user?.department?.let { binding.spinner.setSelection(it.id.toInt()) }
             IdlingResource.decrement()
         }
 
@@ -121,8 +121,10 @@ class UserForm: Fragment() {
     }
 
     private fun save() {
-        user = User(arguments?.getLong("id"), binding.username.text.toString(), binding.first.text.toString(), binding.last.text.toString(),
-            binding.email.text.toString(), binding.password.text.toString(), Department(binding.spinner.selectedItemPosition.toLong(), binding.spinner.selectedItem.toString()))
+//        user = User(arguments?.getLong("id") ?: 0, binding.username.text.toString(), binding.first.text.toString(), binding.last.text.toString(),
+//            binding.email.text.toString(), binding.password.text.toString(), 1)
+
+        // Department(binding.spinner.selectedItemPosition.toLong(), binding.spinner.selectedItem.toString())
 
         user?.validate(binding.confirm.text.toString())?.let {
             (activity as? EmployeeAdmin)?.alert(java.lang.Exception(it))?.show()
@@ -137,7 +139,7 @@ class UserForm: Fragment() {
                 arguments?.getLong("id")?.let {
                     delegate?.update(user!!, roles)
                 } ?: run {
-                    user?.id = delegate?.save(user!!, roles)
+                    user?.id = delegate?.save(user!!, roles) ?: 0
                 }
             }
         }.invokeOnCompletion {

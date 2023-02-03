@@ -8,17 +8,13 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject
 
-import android.database.Cursor
 import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
-import java.lang.Exception
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class Role(var id: Long? = null, var name: String? = null): Parcelable {
-
-    constructor(cursor: Cursor) : this() {
-        try { id = cursor.getLong(cursor.getColumnIndexOrThrow("id")) } catch (_: Exception) {}
-        try { name = cursor.getString(cursor.getColumnIndexOrThrow("name")) } catch (_: Exception) {}
-    }
-
-}
+@Entity(tableName = "role")
+data class Role(
+    @PrimaryKey(autoGenerate = true) var id: Long,
+    var name: String? = null): Parcelable
