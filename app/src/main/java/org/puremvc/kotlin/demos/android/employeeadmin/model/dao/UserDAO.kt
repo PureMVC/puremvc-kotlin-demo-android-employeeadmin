@@ -1,34 +1,46 @@
+//
+//  UserDAO.kt
+//  PureMVC Android Demo - EmployeeAdmin
+//
+//  Copyright(c) 2020 Saad Shams <saad.shams@puremvc.org>
+//  Your reuse is governed by the Creative Commons Attribution 3.0 License
+//
+
 package org.puremvc.kotlin.demos.android.employeeadmin.model.dao
 
-import androidx.lifecycle.LiveData
 import androidx.room.*
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
-import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserDepartment
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserRole
 
 @Dao
 interface UserDAO {
-//    @Query("SELECT id, first, last from user")
-//    fun findAll(): List<User>
-//
-//    @Query("SELECT id, first, last from user")
-//    fun findAll2(): LiveData<User>
 
-//    @Query("SELECT user.*, department.name AS 'department_name' FROM user " +
-//            "INNER JOIN department ON user.department_id = department.id " +
-//            "WHERE user.id = :id")
-    @Query("SELECT * FROM user WHERE id = :id")
-    fun findById(id: Long): UserDepartment
+    @Query("SELECT * from user")
+    fun findAll(): List<User>
 
-//    @Insert(onConflict = OnConflictStrategy.IGNORE)
-//    fun save(users: User): Long
-//
-//    @Update
-//    fun update(user: User): Int
-//
-//    @Query("DELETE FROM user WHERE id = :id")
-//    fun deleteById(id: Long): Int
-//
-//    @Query("SELECT id, name FROM department")
-//    fun findAllDepartments(): List<Department>
+    @Query("SELECT * FROM user " +
+            "INNER JOIN department ON user.department_id = department.id " +
+            "WHERE user.id = :id")
+    fun findById(id: Long): Map<User, Department>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun save(users: User): Long
+
+    @Update
+    fun update(user: User): Int
+
+    @Query("DELETE FROM user WHERE id = :id")
+    fun deleteById(id: Long): Int
+
+    @Query("SELECT * FROM department")
+    fun findAllDepartments(): List<Department>
+
+    @Insert
+    fun insertAll(departments: List<Department>)
+
+    @Transaction
+    @Query("SELECT * FROM user")
+    fun getUserRoles(): List<UserRole>
+
 }

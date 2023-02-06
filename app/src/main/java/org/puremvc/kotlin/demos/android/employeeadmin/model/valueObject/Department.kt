@@ -10,23 +10,11 @@ package org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject
 
 import android.os.Parcelable
 import androidx.room.*
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 @Entity(tableName = "department")
 data class Department(
     @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "department_id") var id: Long,
-    var name: String? = null): Parcelable {
-
-    fun validate(): Boolean {
-        return id != 0L
-    }
-
-}
-
-data class UserDepartment(
-    @Embedded var user: User,
-    @Relation(parentColumn = "id", entityColumn = "department_id")
-    val department: Department
-)
+    var id: Long,
+    var name: String): Parcelable

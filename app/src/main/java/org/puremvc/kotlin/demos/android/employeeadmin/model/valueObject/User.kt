@@ -9,26 +9,25 @@
 package org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject
 
 import android.os.Parcelable
-import androidx.room.ColumnInfo
-import androidx.room.Embedded
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import androidx.room.*
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-@Entity(tableName = "user")
+@Entity(tableName = "user", indices = [Index(value = ["username"], unique = true)], foreignKeys = [
+    ForeignKey(entity = Department::class, parentColumns = ["id"], childColumns = ["department_id"], onUpdate = ForeignKey.CASCADE, onDelete = ForeignKey.RESTRICT)])
 data class User(
-    @PrimaryKey (autoGenerate = true) var id: Long,
+    @PrimaryKey (autoGenerate = true)
+    var id: Long,
     var username: String? = null,
     var first: String? = null,
     var last: String? = null,
     var email: String? = null,
     var password: String? = null,
-    var department_id: Long): Parcelable {
+    @ColumnInfo (index = true) var department_id: Long): Parcelable {
 
     fun validate(confirm: String): String? {
         if (first == null || first == "" || last == null || last == "" ||
-                username == null || username == "" || password == null || password == "") { // || department == null || !department!!.validate()
+                username == null || username == "" || password == null || password == "" || department_id != 0L) {
             return "Invalid Form Data."
         }
 
@@ -43,3 +42,4 @@ data class User(
     }
 
 }
+

@@ -8,126 +8,111 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.model
 
-import android.database.sqlite.SQLiteCursor
-import android.database.sqlite.SQLiteDatabase
-import android.database.sqlite.SQLiteOpenHelper
-import org.junit.Assert.assertEquals
+import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.*
 import org.mockito.junit.MockitoJUnitRunner
+import org.puremvc.kotlin.demos.android.employeeadmin.controller.AppDatabase
+import org.puremvc.kotlin.demos.android.employeeadmin.model.dao.RoleDAO
+import org.puremvc.kotlin.demos.android.employeeadmin.model.dao.UserDAO
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 
 @RunWith(MockitoJUnitRunner::class)
 class UserProxyTest {
 
-    private lateinit var connection: SQLiteOpenHelper
+    private lateinit var database: AppDatabase
 
-    private lateinit var database: SQLiteDatabase
-
-    private lateinit var cursor: SQLiteCursor
-
-    private lateinit var userProxy: UserProxy
+    private lateinit var userDAO: UserDAO
 
     @Before
     fun setup() {
-        connection = mock(SQLiteOpenHelper::class.java)
-        database = mock(SQLiteDatabase::class.java)
-        cursor = mock(SQLiteCursor::class.java)
-        userProxy = UserProxy(connection)
+        database = mock(AppDatabase::class.java)
+        `when`(mock(Room::class.java).inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext(), AppDatabase::class.java)
+            .build()).thenReturn(database)
+        `when`(database.roleDAO()).thenReturn(mock(RoleDAO::class.java))
 
-        `when`(connection.readableDatabase).thenReturn(database)
-        `when`(connection.writableDatabase).thenReturn(database)
-        `when`(database.rawQuery(anyString(), any())).thenReturn(cursor)
-        `when`(cursor.moveToNext()).thenReturn(true).thenReturn(false)
-        `when`(cursor.moveToFirst()).thenReturn(true)
+        userDAO = database.userDAO()
+
+
     }
 
     @Test
     fun testFindAll() {
-        `when`(cursor.count).thenReturn(1)
-        `when`(cursor.getColumnIndexOrThrow("id")).thenReturn(1)
-        `when`(cursor.getLong(1)).thenReturn(1)
+        userDAO.insertAll(listOf(Department(1, "Accounting"),
+            Department(2, "Sales"), Department(3, "Plant"),
+            Department(4, "Shipping"), Department(5, "Quality Control")))
 
-        `when`(cursor.getColumnIndexOrThrow("first")).thenReturn(2)
-        `when`(cursor.getString(2)).thenReturn("Larry")
+        database.userDAO().save(User(1, "lstooge", "Larry", "Stooge", "larry@stooges.com", "ijk456", 3))
+        database.userDAO().save(User(2, "cstooge", "Curly", "Stooge", "curly@stooges.com", "xyz987", 4))
+        database.userDAO().save(User(3, "mstooge", "Moe", "Stooge", "moe@stooges.com", "abc123", 5))
 
-        `when`(cursor.getColumnIndexOrThrow("last")).thenReturn(3)
-        `when`(cursor.getString(3)).thenReturn("Stooge")
-
-        userProxy.findAll().let { user ->
-            assertEquals(1L, user!![0].id)
-            assertEquals("Larry", user[0].first)
-            assertEquals("Stooge", user[0].last)
+        userDAO.findAll().let {
+            assertEquals(1L, it[0].id)
+            assertEquals("Larry", it[0].first)
+            assertEquals("Stooge", it[0].last)
         }
     }
 
     @Test
     fun testFindById() {
-        `when`(cursor.getColumnIndexOrThrow("id")).thenReturn(1)
-        `when`(cursor.getLong(1)).thenReturn(1)
-        `when`(cursor.getColumnIndexOrThrow("username")).thenReturn(2)
-        `when`(cursor.getString(2)).thenReturn("lstooge")
-        `when`(cursor.getColumnIndexOrThrow("first")).thenReturn(3)
-        `when`(cursor.getString(3)).thenReturn("Larry")
-        `when`(cursor.getColumnIndexOrThrow("last")).thenReturn(4)
-        `when`(cursor.getString(4)).thenReturn("Stooge")
-        `when`(cursor.getColumnIndexOrThrow("email")).thenReturn(5)
-        `when`(cursor.getString(5)).thenReturn("larry@stooges.com")
-        `when`(cursor.getColumnIndexOrThrow("password")).thenReturn(6)
-        `when`(cursor.getString(6)).thenReturn("ijk456")
-        `when`(cursor.getColumnIndexOrThrow("department_name")).thenReturn(8)
-        `when`(cursor.getString(8)).thenReturn("Accounting")
+        userDAO.insertAll(listOf(Department(1, "Accounting"),
+            Department(2, "Sales"), Department(3, "Plant"),
+            Department(4, "Shipping"), Department(5, "Quality Control")))
 
-        userProxy.findById(1)?.let { user ->
-            assertEquals(1L, user.id)
-            assertEquals("lstooge", user.username)
-            assertEquals("Larry", user.first)
-            assertEquals("Stooge", user.last)
-            assertEquals("larry@stooges.com", user.email)
-            assertEquals("ijk456", user.password)
-            assertEquals(0L, user.department?.id)
-            assertEquals("Accounting", user.department?.name)
-        }
+        database.userDAO().save(User(1, "lstooge", "Larry", "Stooge", "larry@stooges.com", "ijk456", 3))
+        database.userDAO().save(User(2, "cstooge", "Curly", "Stooge", "curly@stooges.com", "xyz987", 4))
+        database.userDAO().save(User(3, "mstooge", "Moe", "Stooge", "moe@stooges.com", "abc123", 5))
+
+        val map = userDAO.findById(1)
+        val user = map.keys.first()
+        val department = map.values.first()
+
+        assertEquals(1L, user.id)
+        assertEquals("lstooge", user.username)
+        assertEquals("Larry", user.first)
+        assertEquals("Stooge", user.last)
+        assertEquals("larry@stooges.com", user.email)
+        assertEquals("ijk456", user.password)
+        assertEquals(0L, department.id)
+        assertEquals("Accounting", department.name)
     }
 
     @Test
     fun testSave() {
-        `when`(cursor.getLong(0)).thenReturn(1)
-        val user = User(null, "jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", Department(3, "Shipping"))
+        `when`(userDAO.save(any())).thenReturn(1)
+        val user = User(1, "jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", 3)
 
-        val result = userProxy.save(user)
+        val result = userDAO.save(user)
         assertEquals(1L, result)
     }
 
     @Test
     fun testUpdate() {
-        `when`(cursor.getInt(0)).thenReturn(1)
-        val user = User(1, "jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", Department(3, "Shipping"))
+        `when`(userDAO.update(any())).thenReturn(1)
+        val user = User(1, "jstooge", "Joe", "Stooge", "joe@stooges.com", "abc123", 3)
 
-        val result = userProxy.update(user)
+        val result = userDAO.update(user)
         assertEquals(1, result)
     }
 
     @Test
     fun testDeleteById() {
-        `when`(cursor.getInt(0)).thenReturn(1)
+        `when`(userDAO.deleteById(any())).thenReturn(1)
 
-        val result = userProxy.deleteById(1)
+        val result = userDAO.deleteById(1)
         assertEquals(1, result)
     }
 
     @Test
     fun testFindAllDepartments() {
-        `when`(cursor.count).thenReturn(1)
-        `when`(cursor.getColumnIndexOrThrow("id")).thenReturn(1)
-        `when`(cursor.getLong(1)).thenReturn(1)
-        `when`(cursor.getColumnIndexOrThrow("name")).thenReturn(2)
-        `when`(cursor.getString(2)).thenReturn("Accounting")
+        `when`(userDAO.findAllDepartments()).thenReturn(listOf(Department(1, "Accounting")))
 
-        val departments = userProxy.findAllDepartments()
+        val departments = userDAO.findAllDepartments()
         assertEquals(1, departments.size)
         assertEquals(1L, departments[0].id)
         assertEquals("Accounting", departments[0].name)

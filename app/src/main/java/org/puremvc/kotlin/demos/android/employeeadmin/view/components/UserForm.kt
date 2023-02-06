@@ -8,7 +8,6 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.view.components
 
-import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -16,7 +15,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -33,13 +31,15 @@ import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 import java.lang.ref.WeakReference
 
 interface IUserForm {
-    fun findById(id: Long): User?
-    fun save(user: User, roles: List<Role>?): Long
-    fun update(user: User, roles: List<Role>?): Int
-    fun findAllDepartments(): List<Department>
+    fun findById(id: Long): Map<User, Department>?
+    fun save(user: User, roles: List<Role>?): Long?
+    fun update(user: User, roles: List<Role>?): Int?
+    fun findAllDepartments(): List<Department>?
 }
 
 class UserForm: Fragment() {
+
+    private var map: Map<User, Department>? = null
 
     private var user: User? = null
 
@@ -91,7 +91,8 @@ class UserForm: Fragment() {
                     arguments?.getLong("id")?.let {
                         binding.username.isEnabled = false
                         withContext(Dispatchers.IO) {
-                            user = delegate?.findById(it)
+                            map = delegate?.findById(it)
+                            user = map?.keys?.iterator()?.next()
                         }
                     }
                 }
@@ -99,7 +100,8 @@ class UserForm: Fragment() {
         }.invokeOnCompletion { // Upon completion to avoid race condition with UI Data thread
             binding.progressBar.visibility = View.GONE
             binding.user = user // Set User Data
-            // user?.department?.let { binding.spinner.setSelection(it.id.toInt()) }
+            val department = map?.values?.iterator()?.next()
+            department?.let { binding.spinner.setSelection(it.id.toInt()) }
             IdlingResource.decrement()
         }
 
@@ -121,10 +123,8 @@ class UserForm: Fragment() {
     }
 
     private fun save() {
-//        user = User(arguments?.getLong("id") ?: 0, binding.username.text.toString(), binding.first.text.toString(), binding.last.text.toString(),
-//            binding.email.text.toString(), binding.password.text.toString(), 1)
-
-        // Department(binding.spinner.selectedItemPosition.toLong(), binding.spinner.selectedItem.toString())
+        user = User(arguments?.getLong("id") ?: 0, binding.username.text.toString(), binding.first.text.toString(), binding.last.text.toString(),
+            binding.email.text.toString(), binding.password.text.toString(), binding.spinner.selectedItemPosition.toLong())
 
         user?.validate(binding.confirm.text.toString())?.let {
             (activity as? EmployeeAdmin)?.alert(java.lang.Exception(it))?.show()
@@ -156,7 +156,7 @@ class UserForm: Fragment() {
         } ?: run {
             userRole.arguments = bundleOf( "roles" to roles)
         }
-        userRole.show(childFragmentManager, "dialog") // Get Data: View
+        userRole.show(parentFragmentManager, "dialog") // Get Data: View
     }
 
     private fun onFragmentResult(requestKey: String, bundle: Bundle) { // Set Data: View

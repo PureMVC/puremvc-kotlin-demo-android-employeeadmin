@@ -58,20 +58,40 @@ dependencies {
     annotationProcessor "androidx.room:room-compiler:2.5.0"
     kapt "androidx.room:room-compiler:2.5.0"
 
-    implementation 'androidx.test.espresso:espresso-idling-resource:3.5.1'
-
-    testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.json:json:20220924'
-    testImplementation "org.mockito.kotlin:mockito-kotlin:4.0.0"
+    androidTestImplementation "org.hamcrest:hamcrest:2.2"
 
+    // Core library
+    androidTestImplementation("androidx.test:core:1.5.0")
+
+    // AndroidJUnitRunner and JUnit Rules
+    androidTestImplementation("androidx.test:runner:1.5.2")
+    androidTestImplementation("androidx.test:rules:1.5.0")
+
+    // Assertions
+    testImplementation "androidx.test.ext:junit:1.1.5"
+    androidTestImplementation "androidx.test.ext:junit:1.1.5"
+    androidTestImplementation "androidx.test.ext:truth:1.5.0"
+
+    // Espresso
+    androidTestImplementation "androidx.test.espresso:espresso-core:3.5.1"
+    androidTestImplementation "androidx.test.espresso:espresso-contrib:3.5.1"
+    androidTestImplementation "androidx.test.espresso:espresso-intents:3.5.1"
+    androidTestImplementation "androidx.test.espresso:espresso-accessibility:3.5.1"
+    androidTestImplementation "androidx.test.espresso:espresso-web:3.5.1"
+    implementation 'androidx.test.espresso:espresso-idling-resource:3.5.1'
+    androidTestImplementation "androidx.test.espresso.idling:idling-concurrent:3.5.1"
+
+    androidTestImplementation 'androidx.test.uiautomator:uiautomator:2.2.0'
+
+    // mockito
+    testImplementation "org.mockito:mockito-core:5.1.1"
+    testImplementation "org.mockito:mockito-inline:5.1.1"
+    androidTestImplementation "org.mockito:mockito-android:5.1.1"
+
+    // Fragments
     debugImplementation "androidx.fragment:fragment-testing:1.5.5"
     debugImplementation "androidx.fragment:fragment-ktx:1.6.0-alpha04"
-
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.5.1'
-    androidTestImplementation "org.hamcrest:hamcrest:2.2"
-    androidTestImplementation 'androidx.test:rules:1.5.0'
 
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.10'
 

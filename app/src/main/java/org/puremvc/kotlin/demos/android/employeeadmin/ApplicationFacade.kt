@@ -10,7 +10,6 @@ package org.puremvc.kotlin.demos.android.employeeadmin
 
 import androidx.fragment.app.Fragment
 import org.puremvc.kotlin.demos.android.employeeadmin.controller.StartupCommand
-import org.puremvc.kotlin.multicore.interfaces.IFacade
 import org.puremvc.kotlin.multicore.patterns.facade.Facade
 import java.lang.ref.WeakReference
 

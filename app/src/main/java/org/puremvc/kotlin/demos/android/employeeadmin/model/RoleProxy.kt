@@ -10,6 +10,7 @@ package org.puremvc.kotlin.demos.android.employeeadmin.model
 
 import org.puremvc.kotlin.demos.android.employeeadmin.model.dao.RoleDAO
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserRoleJoin
 import org.puremvc.kotlin.multicore.patterns.proxy.Proxy
 
 class RoleProxy(private val roleDAO: RoleDAO): Proxy(NAME, null) {
@@ -26,12 +27,12 @@ class RoleProxy(private val roleDAO: RoleDAO): Proxy(NAME, null) {
         return roleDAO.findByUserId(id)
     }
 
-//    fun deleteById(id: Long) {
-//        return roleDAO.deleteById(id)
-//    }
-//
-//    fun updateByUserId(id: Long, role: Role) {
-//        return roleDAO.updateByUserId(id, role)
-//    }
+    fun insertUserRoles(id: Long, roles: List<Role>) {
+        return roleDAO.insertUserRoles(roles.map { UserRoleJoin(id, it.id) })
+    }
+
+    fun updateByUserId(id: Long, roles: List<Role>) {
+        return roleDAO.updateByUserId(id, roles.map { UserRoleJoin(id, it.id) })
+    }
 
 }
