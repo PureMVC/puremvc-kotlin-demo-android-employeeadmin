@@ -8,7 +8,7 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.model
 
-import org.puremvc.kotlin.demos.android.employeeadmin.model.dao.UserDAO
+import org.puremvc.kotlin.demos.android.employeeadmin.model.data.UserDAO
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 import org.puremvc.kotlin.multicore.patterns.proxy.Proxy

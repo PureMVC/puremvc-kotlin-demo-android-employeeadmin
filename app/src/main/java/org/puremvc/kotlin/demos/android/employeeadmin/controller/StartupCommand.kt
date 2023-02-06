@@ -9,7 +9,6 @@
 package org.puremvc.kotlin.demos.android.employeeadmin.controller
 
 import androidx.appcompat.app.AlertDialog
-import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
@@ -19,19 +18,12 @@ import org.puremvc.kotlin.demos.android.employeeadmin.ApplicationFacade
 import org.puremvc.kotlin.demos.android.employeeadmin.R
 import org.puremvc.kotlin.demos.android.employeeadmin.model.RoleProxy
 import org.puremvc.kotlin.demos.android.employeeadmin.model.UserProxy
-import org.puremvc.kotlin.demos.android.employeeadmin.model.dao.RoleDAO
-import org.puremvc.kotlin.demos.android.employeeadmin.model.dao.UserDAO
+import org.puremvc.kotlin.demos.android.employeeadmin.model.data.AppDatabase
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.*
 import org.puremvc.kotlin.demos.android.employeeadmin.view.ApplicationMediator
 import org.puremvc.kotlin.multicore.interfaces.INotification
 import org.puremvc.kotlin.multicore.patterns.command.SimpleCommand
 import java.lang.ref.WeakReference
-
-@Database(entities = [User::class, Department::class, Role::class, UserRoleJoin::class], version = 1, exportSchema = false)
-abstract class AppDatabase: RoomDatabase() {
-    abstract fun userDAO(): UserDAO
-    abstract fun roleDAO(): RoleDAO
-}
 
 class StartupCommand: SimpleCommand() {
 

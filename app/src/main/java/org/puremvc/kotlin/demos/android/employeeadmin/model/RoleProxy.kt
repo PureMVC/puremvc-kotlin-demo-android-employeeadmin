@@ -8,7 +8,7 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.model
 
-import org.puremvc.kotlin.demos.android.employeeadmin.model.dao.RoleDAO
+import org.puremvc.kotlin.demos.android.employeeadmin.model.data.RoleDAO
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserRoleJoin
 import org.puremvc.kotlin.multicore.patterns.proxy.Proxy

@@ -18,6 +18,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.puremvc.kotlin.demos.android.employeeadmin.controller.AppDatabase
+import org.puremvc.kotlin.demos.android.employeeadmin.model.data.RoleDAO
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserRoleJoin
 
 @RunWith(AndroidJUnit4::class)

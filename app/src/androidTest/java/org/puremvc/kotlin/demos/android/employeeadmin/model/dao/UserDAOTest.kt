@@ -18,6 +18,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.puremvc.kotlin.demos.android.employeeadmin.controller.AppDatabase
+import org.puremvc.kotlin.demos.android.employeeadmin.model.data.UserDAO
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 

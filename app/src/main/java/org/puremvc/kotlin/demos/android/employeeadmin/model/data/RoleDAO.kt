@@ -6,7 +6,7 @@
 //  Your reuse is governed by the Creative Commons Attribution 3.0 License
 //
 
-package org.puremvc.kotlin.demos.android.employeeadmin.model.dao
+package org.puremvc.kotlin.demos.android.employeeadmin.model.data
 
 import androidx.room.*
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
