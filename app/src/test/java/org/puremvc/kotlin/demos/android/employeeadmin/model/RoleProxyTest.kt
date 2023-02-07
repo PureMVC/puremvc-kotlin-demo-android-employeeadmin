@@ -17,6 +17,7 @@ import org.junit.runner.RunWith
 import org.mockito.Mockito.*
 import org.mockito.junit.MockitoJUnitRunner
 import org.puremvc.kotlin.demos.android.employeeadmin.controller.AppDatabase
+import org.puremvc.kotlin.demos.android.employeeadmin.model.data.AppDatabase
 import org.puremvc.kotlin.demos.android.employeeadmin.model.data.RoleDAO
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserRoleJoin

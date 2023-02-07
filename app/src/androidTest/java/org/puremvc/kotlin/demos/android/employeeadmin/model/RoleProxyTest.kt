@@ -15,6 +15,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.puremvc.kotlin.demos.android.employeeadmin.controller.AppDatabase
+import org.puremvc.kotlin.demos.android.employeeadmin.model.data.AppDatabase
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User

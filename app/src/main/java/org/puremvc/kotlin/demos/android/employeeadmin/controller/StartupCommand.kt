@@ -8,18 +8,22 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.controller
 
-import androidx.appcompat.app.AlertDialog
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.puremvc.kotlin.demos.android.employeeadmin.Application
 import org.puremvc.kotlin.demos.android.employeeadmin.ApplicationFacade
-import org.puremvc.kotlin.demos.android.employeeadmin.R
 import org.puremvc.kotlin.demos.android.employeeadmin.model.RoleProxy
 import org.puremvc.kotlin.demos.android.employeeadmin.model.UserProxy
 import org.puremvc.kotlin.demos.android.employeeadmin.model.data.AppDatabase
-import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.*
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
+import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserRoleJoin
 import org.puremvc.kotlin.demos.android.employeeadmin.view.ApplicationMediator
 import org.puremvc.kotlin.multicore.interfaces.INotification
 import org.puremvc.kotlin.multicore.patterns.command.SimpleCommand
@@ -32,8 +36,7 @@ class StartupCommand: SimpleCommand() {
         val application = notification.body as Application
 
         var initialized = true
-        val database = Room.
-            databaseBuilder(application.applicationContext, AppDatabase::class.java, "employeeadmin.sqlite")
+        val database = Room.databaseBuilder(application, AppDatabase::class.java, "employeeadmin.sqlite")
             .addCallback(object: RoomDatabase.Callback() {
                 override fun onCreate(db: SupportSQLiteDatabase) {
                     super.onCreate(db)
@@ -42,10 +45,8 @@ class StartupCommand: SimpleCommand() {
             })
             .build()
 
-        CoroutineScope(Dispatchers.IO + CoroutineExceptionHandler{ _, e, ->
-            AlertDialog.Builder(application).setTitle(e.javaClass.simpleName)
-                .setMessage(e.cause?.message).setIcon(android.R.drawable.ic_dialog_alert)
-                .setPositiveButton(R.string.okay, null).create().show()
+        CoroutineScope(Dispatchers.IO + CoroutineExceptionHandler { _, e, ->
+            System.err.println("Error: ${e.message}")
         }).launch {
             database.runInTransaction {} // force database creation
         }.invokeOnCompletion {
