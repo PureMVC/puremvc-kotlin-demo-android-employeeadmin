@@ -8,6 +8,7 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.model
 
+import androidx.lifecycle.LiveData
 import org.puremvc.kotlin.demos.android.employeeadmin.model.data.UserDAO
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
@@ -21,6 +22,10 @@ class UserProxy(private val userDAO: UserDAO): Proxy(NAME, null) {
 
     fun findAll(): List<User> {
         return userDAO.findAll()
+    }
+
+    fun findAllUsers(): LiveData<List<User>> {
+        return userDAO.findAllUsers()
     }
 
     fun findById(id: Long): Map<User, Department> {

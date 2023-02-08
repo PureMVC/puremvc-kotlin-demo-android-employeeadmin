@@ -27,7 +27,7 @@ data class User(
 
     fun validate(confirm: String): String? {
         if (first == null || first == "" || last == null || last == "" ||
-                username == null || username == "" || password == null || password == "" || department_id != 0L) {
+                username == null || username == "" || password == null || password == "" || department_id == 0L) {
             return "Invalid Form Data."
         }
 

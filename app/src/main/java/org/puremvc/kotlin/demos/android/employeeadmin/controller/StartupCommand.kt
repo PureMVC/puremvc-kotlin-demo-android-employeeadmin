@@ -35,45 +35,17 @@ class StartupCommand: SimpleCommand() {
 
         val application = notification.body as Application
 
-        var initialized = true
         val database = Room.databaseBuilder(application, AppDatabase::class.java, "employeeadmin.sqlite")
             .addCallback(object: RoomDatabase.Callback() {
                 override fun onCreate(db: SupportSQLiteDatabase) {
                     super.onCreate(db)
-                    initialized = false
+                    db.execSQL("INSERT INTO department(id, name) VALUES(1, 'Accounting'), (2, 'Sales'), (3, 'Plant'), (4, 'Shipping'), (5, 'Quality Control')")
+                    db.execSQL("INSERT INTO role(id, name) VALUES(1, 'Administrator'), (2, 'Accounts Payable'), (3, 'Accounts Receivable'), (4, 'Employee Benefits'), (5, 'General Ledger'),(6, 'Payroll'), (7, 'Inventory'), (8, 'Production'), (9, 'Quality Control'), (10, 'Sales'), (11, 'Orders'), (12, 'Customers'), (13, 'Shipping'), (14, 'Returns')")
+                    db.execSQL("INSERT INTO user(id, username, first, last, email, password, department_id) VALUES(1, 'lstooge', 'Larry', 'Stooge', 'larry@stooges.com', 'ijk456', 1), (2, 'cstooge', 'Curly', 'Stooge', 'curly@stooges.com', 'xyz987', 2), (3, 'mstooge', 'Moe', 'Stooge', 'moe@stooges.com', 'abc123', 3)")
+                    db.execSQL("INSERT INTO user_role(user_id, role_id) VALUES(1, 4), (2, 3), (2, 5), (3, 8), (3, 10), (3, 13)")
                 }
             })
             .build()
-
-        CoroutineScope(Dispatchers.IO + CoroutineExceptionHandler { _, e, ->
-            System.err.println("Error: ${e.message}")
-        }).launch {
-            database.runInTransaction {} // force database creation
-        }.invokeOnCompletion {
-            if (!initialized) {
-                database.userDAO().insertAll(listOf(Department(1, "Accounting"),
-                    Department(2, "Sales"), Department(3, "Plant"),
-                    Department(4, "Shipping"), Department(5, "Quality Control")))
-
-                database.roleDAO().insertAll(listOf(Role(1, "Administrator"),
-                    Role(2, "Accounts Payable"), Role(3, "Accounts Receivable"),
-                    Role(4, "Employee Benefits"), Role(5, "General Ledger"),
-                    Role(6, "Payroll"), Role(7, "Inventory"),
-                    Role(8, "Production"), Role(9, "Quality Control"),
-                    Role(10, "Sales"), Role(11, "Orders"),
-                    Role(12, "Customers"), Role(13, "Shipping"),
-                    Role(14, "Returns")))
-
-                database.userDAO().save(User(1, "lstooge", "Larry", "Stooge", "larry@stooges.com", "ijk456", 3))
-                database.userDAO().save(User(2, "cstooge", "Curly", "Stooge", "curly@stooges.com", "xyz987", 4))
-                database.userDAO().save(User(3, "mstooge", "Moe", "Stooge", "moe@stooges.com", "abc123", 5))
-
-                database.roleDAO().insertUserRoles(listOf(UserRoleJoin(1, 4),
-                    UserRoleJoin(2, 3), UserRoleJoin(2, 5),
-                    UserRoleJoin(3, 8), UserRoleJoin(3, 10),
-                    UserRoleJoin(3, 13)))
-            }
-        }
 
         facade.registerProxy(UserProxy(database.userDAO()))
         facade.registerProxy(RoleProxy(database.roleDAO()))
