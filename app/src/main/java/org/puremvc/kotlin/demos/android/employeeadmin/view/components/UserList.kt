@@ -17,23 +17,25 @@ import android.widget.TextView
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ItemTouchHelper.SimpleCallback
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.puremvc.kotlin.demos.android.employeeadmin.ApplicationFacade
 import org.puremvc.kotlin.demos.android.employeeadmin.R
 import org.puremvc.kotlin.demos.android.employeeadmin.databinding.UserListBinding
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 import java.lang.ref.WeakReference
 
+
 interface IUserList {
     fun findAll(): List<User>?
-    fun findAllUsers(): LiveData<List<User>>?
     fun deleteById(id: Long): Int?
 }
 
@@ -66,6 +68,7 @@ class UserList: Fragment() {
         }) {
             IdlingResource.increment()
 
+            binding.recyclerView.addItemDecoration(DividerItemDecoration(binding.recyclerView.context, DividerItemDecoration.VERTICAL))
             binding.recyclerView.adapter = Adapter(arrayListOf()) // Set UI Data: Default
 
             savedInstanceState?.let { // Get User Data: Cache
