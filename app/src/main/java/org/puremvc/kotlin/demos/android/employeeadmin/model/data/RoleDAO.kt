@@ -16,27 +16,27 @@ import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserRole
 interface RoleDAO {
 
     @Query("SELECT id, name FROM role")
-    fun findAll(): List<Role>
+    suspend fun findAll(): List<Role>
 
     @Transaction
     @Query("SELECT id, name FROM role " +
             "INNER JOIN user_role ON role.id = user_role.role_id " +
             "WHERE user_id = :id")
-    fun findByUserId(id: Long): List<Role>
+    suspend fun findByUserId(id: Long): List<Role>
 
     @Insert
-    fun insertAll(roles: List<Role>)
+    suspend fun insertAll(roles: List<Role>)
 
     @Insert
-    fun insertUserRoles(roles: List<UserRoleJoin>)
+    suspend fun insertUserRoles(roles: List<UserRoleJoin>)
 
     @Transaction
-    fun updateByUserId(id: Long, roles: List<UserRoleJoin>) {
+    suspend fun updateByUserId(id: Long, roles: List<UserRoleJoin>) {
         deleteById(id)
         insertUserRoles(roles)
     }
 
     @Query("DELETE FROM user_role WHERE user_id = :id")
-    fun deleteById(id: Long)
+    suspend fun deleteById(id: Long)
 
 }

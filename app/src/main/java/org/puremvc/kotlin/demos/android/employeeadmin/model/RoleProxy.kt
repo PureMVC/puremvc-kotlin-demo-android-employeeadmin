@@ -19,19 +19,19 @@ class RoleProxy(private val roleDAO: RoleDAO): Proxy(NAME, null) {
         const val NAME: String = "RoleProxy"
     }
 
-    fun findAll(): List<Role> {
+    suspend fun findAll(): List<Role> {
         return roleDAO.findAll()
     }
 
-    fun findByUserId(id: Long): List<Role> {
+    suspend fun findByUserId(id: Long): List<Role> {
         return roleDAO.findByUserId(id)
     }
 
-    fun insertUserRoles(id: Long, roles: List<Role>) {
+    suspend fun insertUserRoles(id: Long, roles: List<Role>) {
         return roleDAO.insertUserRoles(roles.map { UserRoleJoin(id, it.id) })
     }
 
-    fun updateByUserId(id: Long, roles: List<Role>) {
+    suspend fun updateByUserId(id: Long, roles: List<Role>) {
         return roleDAO.updateByUserId(id, roles.map { UserRoleJoin(id, it.id) })
     }
 

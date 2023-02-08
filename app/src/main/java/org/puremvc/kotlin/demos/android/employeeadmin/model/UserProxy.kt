@@ -19,27 +19,27 @@ class UserProxy(private val userDAO: UserDAO): Proxy(NAME, null) {
         const val NAME = "UserProxy"
     }
 
-    fun findAll(): List<User> {
+    suspend fun findAll(): List<User> {
         return userDAO.findAll()
     }
 
-    fun findById(id: Long): Map<User, Department> {
+    suspend fun findById(id: Long): Map<User, Department> {
         return userDAO.findById(id)
     }
 
-    fun save(user: User): Long {
+    suspend fun save(user: User): Long {
         return userDAO.save(user)
     }
 
-    fun update(user: User): Int {
+    suspend fun update(user: User): Int {
         return userDAO.update(user)
     }
 
-    fun deleteById(id: Long): Int {
+    suspend fun deleteById(id: Long): Int {
         return userDAO.deleteById(id)
     }
 
-    fun findAllDepartments(): List<Department> {
+    suspend fun findAllDepartments(): List<Department> {
         return userDAO.findAllDepartments()
     }
 

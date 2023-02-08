@@ -26,8 +26,8 @@ import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
 import java.lang.ref.WeakReference
 
 interface IUserRole {
-    fun findAllRoles(): List<Role>?
-    fun findRolesById(id: Long): List<Role>?
+    suspend fun findAllRoles(): List<Role>?
+    suspend fun findRolesById(id: Long): List<Role>?
 }
 
 class UserRole: DialogFragment() {
@@ -52,35 +52,23 @@ class UserRole: DialogFragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = UserRoleBinding.inflate(inflater, container, false)
 
-        CoroutineScope(Dispatchers.IO + CoroutineExceptionHandler { _, e ->
+        CoroutineScope(CoroutineExceptionHandler { _, e ->
             (activity as? EmployeeAdmin)?.alert(e)?.show()
         }).launch { // Concurrent UI and User Data requests
             IdlingResource.increment()
 
             launch { // Get UI Data
-                withContext(Dispatchers.IO) {
-                    val items = delegate?.findAllRoles()?.map { it.name } ?: listOf()
-                    withContext(Dispatchers.Main) { // Set UI Data
-                        val adapter = ArrayAdapter(requireActivity(), android.R.layout.simple_list_item_multiple_choice, items)
-                        binding.listView.adapter = adapter
-                    }
-                }
+                val items = delegate?.findAllRoles()?.map { it.name } ?: listOf()
+                val adapter = ArrayAdapter(requireActivity(), android.R.layout.simple_list_item_multiple_choice, items)
+                binding.listView.adapter = adapter
             }
 
-            arguments?.getParcelableArrayList("roles", Role::class.java)?.let { // Get User Data: Arguments
-                roles = it.toMutableList() as ArrayList<Role> // Copy array to avoid side effects (passed by reference)
-            }
-
-            savedInstanceState?.let { // Get User Data: Cache
-                roles = it.getParcelableArrayList("roles", Role::class.java)
-            }
-
-            launch { // Get User Data: IO
-                roles ?: run {
+            launch { // Get User Data
+                arguments?.getParcelableArrayList("roles", Role::class.java)?.let { // Get User Data: Arguments
+                    roles = it.toMutableList() as ArrayList<Role> // Copy array to avoid side effects (passed by reference)
+                } ?: run { // Get User Data: IO
                     arguments?.getLong("id")?.let { id -> // default 0L
-                        withContext(Dispatchers.IO) {
-                            roles = if(id != 0L) delegate?.findRolesById(id) as ArrayList<Role>? else arrayListOf() // default
-                        }
+                        roles = if(id != 0L) delegate?.findRolesById(id) as ArrayList<Role>? else arrayListOf() // default
                     }
                 }
             }
@@ -119,11 +107,6 @@ class UserRole: DialogFragment() {
     override fun onStart() {
         super.onStart()
          dialog?.window?.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT)
-    }
-
-    override fun onSaveInstanceState(bundle: Bundle) {
-        bundle.putSerializable("roles", roles)
-        super.onSaveInstanceState(bundle)
     }
 
     override fun onDestroyView() {

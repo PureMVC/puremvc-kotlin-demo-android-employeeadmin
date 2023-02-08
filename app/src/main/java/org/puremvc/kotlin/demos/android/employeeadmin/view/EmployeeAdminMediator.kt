@@ -42,19 +42,19 @@ class EmployeeAdminMediator(name: String, override var viewComponent: WeakRefere
         println("onRemove: $name")
     }
 
-    override fun findAll(): List<User>? {
+    override suspend fun findAll(): List<User>? {
         return userProxy?.findAll()
     }
 
-    override fun deleteById(id: Long): Int? {
+    override suspend fun deleteById(id: Long): Int? {
         return userProxy?.deleteById(id)
     }
 
-    override fun findById(id: Long): Map<User, Department>? {
+    override suspend fun findById(id: Long): Map<User, Department>? {
         return userProxy?.findById(id)
     }
 
-    override fun save(user: User, roles: List<Role>?): Long?  {
+    override suspend fun save(user: User, roles: List<Role>?): Long?  {
         val id = userProxy?.save(user)?.also { id ->
             roles?.let {
                 roleProxy?.insertUserRoles(id, it)
@@ -63,7 +63,7 @@ class EmployeeAdminMediator(name: String, override var viewComponent: WeakRefere
         return id
     }
 
-    override fun update(user: User, roles: List<Role>?): Int? {
+    override suspend fun update(user: User, roles: List<Role>?): Int? {
         val affected = userProxy?.update(user)?.also {
             roles?.let {
                 roleProxy?.updateByUserId(user.id, it)
@@ -72,15 +72,15 @@ class EmployeeAdminMediator(name: String, override var viewComponent: WeakRefere
         return affected
     }
 
-    override fun findAllDepartments(): List<Department>? {
+    override suspend fun findAllDepartments(): List<Department>? {
         return userProxy?.findAllDepartments()
     }
 
-    override fun findAllRoles(): List<Role>? {
+    override suspend fun findAllRoles(): List<Role>? {
         return roleProxy?.findAll()
     }
 
-    override fun findRolesById(id: Long): List<Role>? {
+    override suspend fun findRolesById(id: Long): List<Role>? {
         return roleProxy?.findByUserId(id)
     }
 

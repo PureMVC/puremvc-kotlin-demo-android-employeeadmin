@@ -31,10 +31,10 @@ import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 import java.lang.ref.WeakReference
 
 interface IUserForm {
-    fun findById(id: Long): Map<User, Department>?
-    fun save(user: User, roles: List<Role>?): Long?
-    fun update(user: User, roles: List<Role>?): Int?
-    fun findAllDepartments(): List<Department>?
+    suspend fun findById(id: Long): Map<User, Department>?
+    suspend fun save(user: User, roles: List<Role>?): Long?
+    suspend fun update(user: User, roles: List<Role>?): Int?
+    suspend fun findAllDepartments(): List<Department>?
 }
 
 class UserForm: Fragment() {
@@ -71,36 +71,23 @@ class UserForm: Fragment() {
             IdlingResource.increment()
 
             launch { // Get UI Data
-                withContext(Dispatchers.IO) {
-                    val items = listOf("--None Selected--") + (delegate?.findAllDepartments()?.map { it.name } ?: listOf()) // Get UI Data: IO
-                    withContext(Dispatchers.Main) { // Set UI Data
-                        val adapter = ArrayAdapter(requireActivity(), android.R.layout.simple_spinner_item, items)
-                        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                        binding.spinner.adapter = adapter
-                    }
-                }
-            }
-
-            savedInstanceState?.let { // Get User Data: Cache
-                user = it.getParcelable("user", User::class.java)
-                roles = it.getParcelableArrayList("roles", Role::class.java)
+                val items = listOf("--None Selected--") + (delegate?.findAllDepartments()?.map { it.name } ?: listOf()) // Get UI Data: IO
+                val adapter = ArrayAdapter(requireActivity(), android.R.layout.simple_spinner_item, items)
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                binding.spinner.adapter = adapter
             }
 
             launch { // Get User Data: IO
-                user ?: run {
-                    arguments?.getLong("id")?.let {
-                        binding.username.isEnabled = false
-                        withContext(Dispatchers.IO) {
-                            map = delegate?.findById(it)
-                            user = map?.keys?.iterator()?.next()
-                        }
-                    }
+                arguments?.getLong("id")?.let {
+                    binding.username.isEnabled = false
+                    map = delegate?.findById(it)
+                    user = map?.keys?.first()
                 }
             }
         }.invokeOnCompletion { // Upon completion to avoid race condition with UI Data thread
             binding.progressBar.visibility = View.GONE
             binding.user = user // Set User Data
-            val department = map?.values?.iterator()?.next()
+            val department = map?.values?.first()
             department?.let { binding.spinner.setSelection(it.id.toInt()) }
             IdlingResource.decrement()
         }
@@ -135,12 +122,10 @@ class UserForm: Fragment() {
             (activity as? EmployeeAdmin)?.alert(e)?.show()
         }) {
             IdlingResource.increment()
-            withContext(Dispatchers.IO) {
-                arguments?.getLong("id")?.let {
-                    delegate?.update(user!!, roles)
-                } ?: run {
-                    user?.id = delegate?.save(user!!, roles) ?: 0
-                }
+            arguments?.getLong("id")?.let {
+                delegate?.update(user!!, roles)
+            } ?: run {
+                user?.id = delegate?.save(user!!, roles) ?: 0
             }
         }.invokeOnCompletion {
             user?.let { viewModel.setUser(it) }
@@ -152,7 +137,7 @@ class UserForm: Fragment() {
     private fun selectRoles() {
         val userRole = UserRole() // Get Data: View Initialization
         arguments?.getLong("id")?.let { id ->
-            userRole.arguments = bundleOf("id" to (id), "roles" to roles)
+            userRole.arguments = bundleOf("id" to id, "roles" to roles)
         } ?: run {
             userRole.arguments = bundleOf( "roles" to roles)
         }
@@ -167,12 +152,6 @@ class UserForm: Fragment() {
 
     private fun cancel() {
         findNavController().navigate(R.id.action_userForm_to_userList)
-    }
-
-    override fun onSaveInstanceState(bundle: Bundle) { // Set User Data: Cache
-        bundle.putParcelable("user", binding.user)
-        roles?.let { bundle.putParcelableArrayList("roles", ArrayList<Role>(it)) }
-        super.onSaveInstanceState(bundle)
     }
 
     override fun onDestroyView() {

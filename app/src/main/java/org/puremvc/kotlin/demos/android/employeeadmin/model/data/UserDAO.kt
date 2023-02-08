@@ -17,30 +17,30 @@ import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserRole
 interface UserDAO {
 
     @Query("SELECT * from user")
-    fun findAll(): List<User>
+    suspend fun findAll(): List<User>
 
     @Query("SELECT * FROM user " +
             "INNER JOIN department ON user.department_id = department.id " +
             "WHERE user.id = :id")
-    fun findById(id: Long): Map<User, Department>
+    suspend fun findById(id: Long): Map<User, Department>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun save(users: User): Long
+    suspend fun save(users: User): Long
 
     @Update
-    fun update(user: User): Int
+    suspend fun update(user: User): Int
 
     @Query("DELETE FROM user WHERE id = :id")
-    fun deleteById(id: Long): Int
+    suspend fun deleteById(id: Long): Int
 
     @Query("SELECT * FROM department")
-    fun findAllDepartments(): List<Department>
+    suspend fun findAllDepartments(): List<Department>
 
     @Insert
-    fun insertAll(departments: List<Department>)
+    suspend fun insertAll(departments: List<Department>)
 
     @Transaction
     @Query("SELECT * FROM user")
-    fun getUserRoles(): List<UserRole>
+    suspend fun getUserRoles(): List<UserRole>
 
 }

@@ -24,9 +24,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ItemTouchHelper.SimpleCallback
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.puremvc.kotlin.demos.android.employeeadmin.ApplicationFacade
 import org.puremvc.kotlin.demos.android.employeeadmin.R
 import org.puremvc.kotlin.demos.android.employeeadmin.databinding.UserListBinding
@@ -35,8 +33,8 @@ import java.lang.ref.WeakReference
 
 
 interface IUserList {
-    fun findAll(): List<User>?
-    fun deleteById(id: Long): Int?
+    suspend fun findAll(): List<User>?
+    suspend fun deleteById(id: Long): Int?
 }
 
 class UserList: Fragment() {
@@ -63,23 +61,16 @@ class UserList: Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = UserListBinding.inflate(inflater, container, false)
 
+        binding.recyclerView.addItemDecoration(DividerItemDecoration(binding.recyclerView.context, DividerItemDecoration.VERTICAL))
+        binding.recyclerView.adapter = Adapter(arrayListOf()) // Set UI Data: Default
+
         lifecycleScope.launch(CoroutineExceptionHandler { _, e ->
             (activity as? EmployeeAdmin)?.alert(e)?.show()
         }) {
             IdlingResource.increment()
-
-            binding.recyclerView.addItemDecoration(DividerItemDecoration(binding.recyclerView.context, DividerItemDecoration.VERTICAL))
-            binding.recyclerView.adapter = Adapter(arrayListOf()) // Set UI Data: Default
-
-            savedInstanceState?.let { // Get User Data: Cache
-                users = it.getParcelableArrayList("users", User::class.java)
-            }
-
             launch { // Get User Data: IO
-                withContext(Dispatchers.IO) {
-                    users ?: run {
-                        users = delegate?.findAll()?.let { ArrayList(it) }
-                    }
+                users ?: run {
+                    users = delegate?.findAll()?.let { ArrayList(it) }
                 }
             }
         }.invokeOnCompletion { // Upon completion to avoid race condition with UI Data thread
@@ -132,18 +123,11 @@ class UserList: Fragment() {
                 it?.setOnDismissListener { binding.recyclerView.adapter?.notifyItemChanged(index) } // reset
             }?.show()
         }) {
-            withContext(Dispatchers.IO) {
-                delegate?.deleteById(users?.get(index)?.id ?: 0)
-            }
+            delegate?.deleteById(users?.get(index)?.id ?: 0)
         }.invokeOnCompletion {
             users?.removeAt(index)
             binding.recyclerView.adapter?.notifyItemRemoved(index)
         }
-    }
-
-    override fun onSaveInstanceState(bundle: Bundle) { // Set User Data: Cache
-        super.onSaveInstanceState(bundle)
-        bundle.putSerializable("users", users)
     }
 
     override fun onDestroyView() {
