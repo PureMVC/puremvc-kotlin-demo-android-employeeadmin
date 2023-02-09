@@ -8,16 +8,16 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.model.data
 
+import androidx.lifecycle.LiveData
 import androidx.room.*
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
-import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserRole
 
 @Dao
 interface UserDAO {
 
-    @Query("SELECT * from user")
-    suspend fun findAll(): List<User>
+    @Query("SELECT * FROM user")
+    fun findAll(): LiveData<List<User>>
 
     @Query("SELECT * FROM user " +
             "INNER JOIN department ON user.department_id = department.id " +
@@ -35,12 +35,5 @@ interface UserDAO {
 
     @Query("SELECT * FROM department")
     suspend fun findAllDepartments(): List<Department>
-
-    @Insert
-    suspend fun insertAll(departments: List<Department>)
-
-    @Transaction
-    @Query("SELECT * FROM user")
-    suspend fun getUserRoles(): List<UserRole>
 
 }

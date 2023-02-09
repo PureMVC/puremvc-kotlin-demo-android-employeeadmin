@@ -45,8 +45,6 @@ class UserForm: Fragment() {
 
     private var roles: List<Role>? = null
 
-    private val viewModel: UserViewModel by activityViewModels()
-
     private var _binding: UserFormBinding? = null
 
     private val binding get() = _binding!!
@@ -57,8 +55,7 @@ class UserForm: Fragment() {
         const val TAG = "UserForm"
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    init {
         ApplicationFacade.getInstance(ApplicationFacade.KEY).register(WeakReference(this))
     }
 
@@ -70,8 +67,8 @@ class UserForm: Fragment() {
         }) {
             IdlingResource.increment()
 
-            launch { // Get UI Data
-                val items = listOf("--None Selected--") + (delegate?.findAllDepartments()?.map { it.name } ?: listOf()) // Get UI Data: IO
+            launch { // Get UI Data: IO
+                val items = listOf("--None Selected--") + (delegate?.findAllDepartments()?.map { it.name } ?: listOf())
                 val adapter = ArrayAdapter(requireActivity(), android.R.layout.simple_spinner_item, items)
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                 binding.spinner.adapter = adapter
@@ -99,7 +96,9 @@ class UserForm: Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.apply { // Set Event Handlers
             btnSave.setOnClickListener { save() }
-            btnCancel.setOnClickListener { cancel() }
+            btnCancel.setOnClickListener {
+                findNavController().navigate(R.id.action_userForm_to_userList)
+            }
             btnRoles.setOnClickListener {
                 it.isEnabled = false
                 Handler(Looper.getMainLooper()).postDelayed({ it.isEnabled = true }, 3000)
@@ -128,9 +127,8 @@ class UserForm: Fragment() {
                 user?.id = delegate?.save(user!!, roles) ?: 0
             }
         }.invokeOnCompletion {
-            user?.let { viewModel.setUser(it) }
-            findNavController().navigate(R.id.action_userForm_to_userList)
             IdlingResource.decrement()
+            findNavController().navigate(R.id.action_userForm_to_userList)
         }
     }
 
@@ -150,14 +148,9 @@ class UserForm: Fragment() {
         }
     }
 
-    private fun cancel() {
-        findNavController().navigate(R.id.action_userForm_to_userList)
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-        ApplicationFacade.getInstance(ApplicationFacade.KEY).remove(WeakReference(this))
     }
 
     fun setDelegate(delegate: IUserForm) {

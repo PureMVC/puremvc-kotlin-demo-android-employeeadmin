@@ -8,6 +8,7 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.view
 
+import androidx.lifecycle.LiveData
 import org.puremvc.kotlin.demos.android.employeeadmin.model.RoleProxy
 import org.puremvc.kotlin.demos.android.employeeadmin.model.UserProxy
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
@@ -37,12 +38,7 @@ class EmployeeAdminMediator(name: String, override var viewComponent: WeakRefere
         }
     }
 
-    override fun onRemove() {
-        super.onRemove()
-        println("onRemove: $name")
-    }
-
-    override suspend fun findAll(): List<User>? {
+    override suspend fun findAll(): LiveData<List<User>>? {
         return userProxy?.findAll()
     }
 

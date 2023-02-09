@@ -25,9 +25,6 @@ interface RoleDAO {
     suspend fun findByUserId(id: Long): List<Role>
 
     @Insert
-    suspend fun insertAll(roles: List<Role>)
-
-    @Insert
     suspend fun insertUserRoles(roles: List<UserRoleJoin>)
 
     @Transaction
