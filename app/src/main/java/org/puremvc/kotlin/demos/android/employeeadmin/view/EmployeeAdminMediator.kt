@@ -8,7 +8,8 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.view
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.puremvc.kotlin.demos.android.employeeadmin.model.RoleProxy
 import org.puremvc.kotlin.demos.android.employeeadmin.model.UserProxy
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
@@ -38,46 +39,44 @@ class EmployeeAdminMediator(name: String, override var viewComponent: WeakRefere
         }
     }
 
-    override suspend fun findAll(): LiveData<List<User>>? {
-        return userProxy?.findAll()
+    override suspend fun findAll(): List<User>? = withContext(Dispatchers.IO) {
+        return@withContext userProxy?.findAll()
     }
 
-    override suspend fun deleteById(id: Long): Int? {
-        return userProxy?.deleteById(id)
+    override suspend fun deleteById(id: Int): Int? = withContext(Dispatchers.IO) {
+        return@withContext userProxy?.deleteById(id)
     }
 
-    override suspend fun findById(id: Long): Map<User, Department>? {
-        return userProxy?.findById(id)
+    override suspend fun findById(id: Int): User? = withContext(Dispatchers.IO) {
+        return@withContext userProxy?.findById(id)
     }
 
-    override suspend fun save(user: User, roles: List<Role>?): Long?  {
-        val id = userProxy?.save(user)?.also { id ->
-            roles?.let {
-                roleProxy?.insertUserRoles(id, it)
-            }
+    override suspend fun save(user: User, roles: List<Role>?): User? = withContext(Dispatchers.IO) {
+        return@withContext userProxy?.save(user)?.also { user ->
+            roles?.let { roleProxy?.insertUserRoles(user.id, it) }
         }
-        return id
     }
 
-    override suspend fun update(user: User, roles: List<Role>?): Int? {
-        val affected = userProxy?.update(user)?.also {
-            roles?.let {
-                roleProxy?.updateByUserId(user.id, it)
-            }
+    override suspend fun update(user: User, roles: List<Role>?): User? = withContext(Dispatchers.IO) {
+        return@withContext userProxy?.update(user)?.also {
+            roles?.let { roleProxy?.updateByUserId(user.id, it) }
         }
-        return affected
     }
 
-    override suspend fun findAllDepartments(): List<Department>? {
-        return userProxy?.findAllDepartments()
+    override suspend fun findAllDepartments(): List<Department>? = withContext(Dispatchers.IO) {
+        return@withContext userProxy?.findAllDepartments()
     }
 
-    override suspend fun findAllRoles(): List<Role>? {
-        return roleProxy?.findAll()
+    override suspend fun findAllRoles() = withContext(Dispatchers.IO) {
+        return@withContext roleProxy?.findAll()
     }
 
-    override suspend fun findRolesById(id: Long): List<Role>? {
-        return roleProxy?.findByUserId(id)
+    override suspend fun findRolesById(id: Int) = withContext(Dispatchers.IO) {
+        return@withContext roleProxy?.findByUserId(id)
+    }
+
+    override fun remove() {
+        facade.removeMediator(name)
     }
 
 }

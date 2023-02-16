@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.puremvc.kotlin.demos.android.employeeadmin">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name="Application"
         android:usesCleartextTraffic="true"

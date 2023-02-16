@@ -9,12 +9,17 @@
 package org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject
 
 import android.os.Parcelable
-import androidx.room.*
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-@Entity(tableName = "department")
-data class Department(
-    @PrimaryKey(autoGenerate = true)
-    var id: Long,
-    var name: String): Parcelable
+data class Department(var id: Int, var name: String): Parcelable {
+
+    fun validate(): Boolean {
+        return id != 0
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return super.equals(other)
+    }
+
+}

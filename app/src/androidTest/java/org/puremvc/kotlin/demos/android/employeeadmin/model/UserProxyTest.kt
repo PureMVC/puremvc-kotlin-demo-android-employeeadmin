@@ -17,7 +17,6 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.puremvc.kotlin.demos.android.employeeadmin.controller.AppDatabase
 import org.puremvc.kotlin.demos.android.employeeadmin.model.data.AppDatabase
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
@@ -32,7 +31,7 @@ class UserProxyTest: TestCase() {
     @Before
     fun setup() {
         database = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext(), AppDatabase::class.java).build()
-        userProxy = UserProxy(database.userDAO())
+        userProxy = UserProxy(database.userDAO(), parser)
 
         database.userDAO().insertAll(listOf(
             Department(1, "Accounting"),

@@ -8,40 +8,60 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.model
 
-import androidx.lifecycle.LiveData
-import org.puremvc.kotlin.demos.android.employeeadmin.model.data.UserDAO
+import okhttp3.ResponseBody
+import org.puremvc.kotlin.demos.android.employeeadmin.model.service.Error
+import org.puremvc.kotlin.demos.android.employeeadmin.model.service.UserService
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Department
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 import org.puremvc.kotlin.multicore.patterns.proxy.Proxy
+import retrofit2.Converter
 
-class UserProxy(private val userDAO: UserDAO): Proxy(NAME, null) {
+class UserProxy(private val userService: UserService, val converter: Converter<ResponseBody, Error>): Proxy(NAME, null) {
 
     companion object {
         const val NAME = "UserProxy"
     }
 
-    fun findAll(): LiveData<List<User>> {
-        return userDAO.findAll()
+    suspend fun findAll(): List<User>? {
+        val result = userService.findAll()
+        if (result.isSuccessful)
+            return result.body()
+        throw Exception(result.errorBody()?.let { converter.convert(it).toString() })
     }
 
-    suspend fun findById(id: Long): Map<User, Department> {
-        return userDAO.findById(id)
+    suspend fun findById(id: Int): User? {
+        val result = userService.findById(id)
+        if (result.isSuccessful)
+            return result.body()
+        throw Exception(result.errorBody()?.let { converter.convert(it).toString() })
     }
 
-    suspend fun save(user: User): Long {
-        return userDAO.save(user)
+    suspend fun save(user: User): User? {
+        val result = userService.save(user)
+        if (result.isSuccessful)
+            return result.body()
+        throw Exception(result.errorBody()?.let { converter.convert(it).toString() })
     }
 
-    suspend fun update(user: User): Int {
-        return userDAO.update(user)
+    suspend fun update(user: User): User? {
+        val result = userService.update(user.id, user)
+        if (result.isSuccessful)
+            return result.body()
+        throw Exception(result.errorBody()?.let { converter.convert(it).toString() })
     }
 
-    suspend fun deleteById(id: Long): Int {
-        return userDAO.deleteById(id)
+    suspend fun deleteById(id: Int): Int? {
+        val result = userService.deleteById(id)
+        if (result.isSuccessful)
+            return result.body()
+        throw Exception(result.errorBody()?.let { converter.convert(it).toString() })
     }
 
-    suspend fun findAllDepartments(): List<Department> {
-        return userDAO.findAllDepartments()
+    suspend fun findAllDepartments(): List<Department>? {
+        val result = userService.findAllDepartments()
+        if (result.isSuccessful)
+            return result.body()
+        throw Exception(result.errorBody()?.let { converter.convert(it).toString() })
     }
 
 }

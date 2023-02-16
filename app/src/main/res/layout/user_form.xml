@@ -37,7 +37,7 @@
                 android:hint="@string/first"
                 android:importantForAutofill="no"
                 android:inputType="text"
-                android:text="@={user.first}"
+                android:text="@{user.first}"
                 app:layout_constraintEnd_toStartOf="@+id/last"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toStartOf="@id/guidelineLeft"
@@ -52,7 +52,7 @@
                 android:hint="@string/last"
                 android:importantForAutofill="no"
                 android:inputType="text"
-                android:text="@={user.last}"
+                android:text="@{user.last}"
                 app:layout_constraintEnd_toStartOf="@+id/guidelineRight"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toEndOf="@+id/first"
@@ -68,7 +68,7 @@
                 android:hint="@string/email"
                 android:importantForAutofill="no"
                 android:inputType="textEmailAddress"
-                android:text="@={user.email}"
+                android:text="@{user.email}"
                 app:layout_constraintEnd_toStartOf="@+id/username"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toStartOf="@id/guidelineLeft"
@@ -84,7 +84,7 @@
                 android:hint="@string/username"
                 android:importantForAutofill="no"
                 android:inputType="text"
-                android:text="@={user.username}"
+                android:text="@{user.username}"
                 app:layout_constraintEnd_toEndOf="@id/guidelineRight"
                 app:layout_constraintEnd_toStartOf="@+id/guidelineRight"
                 app:layout_constraintHorizontal_bias="0.5"
@@ -106,8 +106,6 @@
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toStartOf="@id/guidelineLeft"
                 app:layout_constraintTop_toBottomOf="@+id/email" />
-
-
 
         <EditText
                 android:id="@+id/confirm"
@@ -131,6 +129,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="28dp"
                 android:layout_marginEnd="4dp"
+                android:selectedItemPosition="@{user.department.id}"
                 app:layout_constraintEnd_toStartOf="@+id/btnRoles"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toStartOf="@id/guidelineLeft"

@@ -8,11 +8,11 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.view.components
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.CheckedTextView
 import android.widget.LinearLayout
@@ -27,7 +27,8 @@ import java.lang.ref.WeakReference
 
 interface IUserRole {
     suspend fun findAllRoles(): List<Role>?
-    suspend fun findRolesById(id: Long): List<Role>?
+    suspend fun findRolesById(id: Int): List<Role>?
+    fun remove()
 }
 
 class UserRole: DialogFragment() {
@@ -45,7 +46,7 @@ class UserRole: DialogFragment() {
     }
 
     init {
-        ApplicationFacade.getInstance(ApplicationFacade.KEY).register(WeakReference(this))
+        ApplicationFacade.getInstance(ApplicationFacade.KEY).register(WeakReference(this), TAG)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -57,21 +58,24 @@ class UserRole: DialogFragment() {
             IdlingResource.increment()
 
             launch { // Get UI Data
-                val items = delegate?.findAllRoles()?.map { it.name } ?: listOf()
-                val adapter = ArrayAdapter(requireActivity(), android.R.layout.simple_list_item_multiple_choice, items)
-                binding.listView.adapter = adapter
+                val items = delegate?.findAllRoles() ?: listOf()
+                val adapter = RoleAdapter(requireActivity(), ArrayList(items))
+                withContext(Dispatchers.Main) {
+                    binding.listView.adapter = adapter
+                }
             }
 
             launch { // Get User Data
                 arguments?.getParcelableArrayList("roles", Role::class.java)?.let { // Get User Data: Arguments
-                    roles = it.toMutableList() as ArrayList<Role> // Copy array to avoid side effects (passed by reference)
+                    roles = it.toMutableList() as? ArrayList<Role> // Copy array to avoid side effects (passed by reference)
                 } ?: run { // Get User Data: IO
-                    arguments?.getLong("id")?.let { id -> // default 0L
-                        roles = if(id != 0L) delegate?.findRolesById(id) as ArrayList<Role>? else arrayListOf() // default
+                    arguments?.getInt("id")?.let { id -> // default 0
+                        roles = if(id != 0) delegate?.findRolesById(id) as ArrayList<Role>? else arrayListOf() // default
                     }
                 }
             }
-        }.invokeOnCompletion { // Upon completion to avoid race condition with UI Data thread
+        }.invokeOnCompletion { throwable -> // Upon completion to avoid race condition with UI Data thread
+            if (throwable != null) return@invokeOnCompletion
             binding.progressBar.visibility = View.GONE
             roles?.forEach { // Set User Data
                 binding.listView.setItemChecked(it.id.toInt().minus(1), true)
@@ -85,21 +89,23 @@ class UserRole: DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.apply { // Set Event Handlers
+            listView.setOnItemClickListener { _, view, _, _ ->
+                (view.tag as? RoleAdapter.ViewHolder)?.let { toggle(it) }
+            }
+
             btnOk.setOnClickListener {
                 dialog?.dismiss()
                 setFragmentResult("roles", bundleOf("roles" to roles))
             }
+
             btnCancel.setOnClickListener { dialog?.dismiss() }
-            listView.setOnItemClickListener { parent, view, position, id ->
-                toggleRole(parent, view, position, id)
-            }
         }
     }
 
-    private fun toggleRole(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-        when (view.findViewById<CheckedTextView>(android.R.id.text1)?.isChecked) {
-            true -> roles?.add(Role(id + 1, parent.adapter.getItem(position).toString()))
-            else -> roles?.removeIf { it.id == id + 1 }
+    private fun toggle(holder: RoleAdapter.ViewHolder) {
+        when(holder.checkedTextView.isChecked) {
+            true -> roles?.add(holder.role)
+            else -> roles?.remove(holder.role)
         }
     }
 
@@ -111,10 +117,36 @@ class UserRole: DialogFragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        delegate?.remove()
     }
 
     fun setDelegate(delegate: IUserRole) {
         this.delegate = delegate
     }
+}
 
+private class RoleAdapter(context: Context, roles: ArrayList<Role>):
+    ArrayAdapter<Role>(context, android.R.layout.simple_list_item_multiple_choice, roles) {
+
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+        val view = convertView ?: LayoutInflater.from(parent.context)
+            .inflate(android.R.layout.simple_list_item_multiple_choice, parent, false)
+
+        val viewHolder = convertView?.tag as? ViewHolder ?: ViewHolder(view)
+        getItem(position)?.let { viewHolder.bind(it) }
+        view.tag = viewHolder
+
+        return view
+    }
+
+    class ViewHolder(val view: View) {
+
+        lateinit var role: Role
+        val checkedTextView = view.findViewById<CheckedTextView>(android.R.id.text1)!!
+
+        fun bind(role: Role) {
+            this.role = role
+            checkedTextView.text = role.name
+        }
+    }
 }

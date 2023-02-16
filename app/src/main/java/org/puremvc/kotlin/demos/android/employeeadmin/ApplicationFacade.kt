@@ -8,7 +8,6 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin
 
-import androidx.fragment.app.Fragment
 import org.puremvc.kotlin.demos.android.employeeadmin.controller.StartupCommand
 import org.puremvc.kotlin.multicore.patterns.facade.Facade
 import java.lang.ref.WeakReference
@@ -30,12 +29,8 @@ class ApplicationFacade(key: String) : Facade(key) {
         registerCommand(STARTUP) { StartupCommand() }
     }
 
-    fun register(view: WeakReference<*>) {
-        sendNotification(REGISTER, view)
-    }
-
-    fun remove(view: WeakReference<Fragment>) {
-        sendNotification(REGISTER, view, "false")
+    fun register(view: WeakReference<*>, tag: String) {
+        sendNotification(REGISTER, view, tag)
     }
 
     fun startup(application: Application) {

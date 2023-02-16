@@ -23,6 +23,10 @@ class Application: Application() {
 
     private var delegate: IApplication? = null
 
+    init {
+        ApplicationFacade.getInstance(ApplicationFacade.KEY).startup(this)
+    }
+
     override fun onConfigurationChanged(config: Configuration) {
         super.onConfigurationChanged(config)
         delegate?.onConfigurationChanged(config)
@@ -30,7 +34,6 @@ class Application: Application() {
 
     override fun onCreate() {
         super.onCreate()
-        ApplicationFacade.getInstance(ApplicationFacade.KEY).startup(this)
         delegate?.onCreate()
     }
 

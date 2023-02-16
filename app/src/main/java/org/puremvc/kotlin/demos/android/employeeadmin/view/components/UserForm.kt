@@ -17,11 +17,13 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.puremvc.kotlin.demos.android.employeeadmin.ApplicationFacade
 import org.puremvc.kotlin.demos.android.employeeadmin.R
 import org.puremvc.kotlin.demos.android.employeeadmin.databinding.UserFormBinding
@@ -31,15 +33,14 @@ import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.User
 import java.lang.ref.WeakReference
 
 interface IUserForm {
-    suspend fun findById(id: Long): Map<User, Department>?
-    suspend fun save(user: User, roles: List<Role>?): Long?
-    suspend fun update(user: User, roles: List<Role>?): Int?
+    suspend fun findById(id: Int): User?
+    suspend fun save(user: User, roles: List<Role>?): User?
+    suspend fun update(user: User, roles: List<Role>?): User?
     suspend fun findAllDepartments(): List<Department>?
+    fun remove()
 }
 
 class UserForm: Fragment() {
-
-    private var map: Map<User, Department>? = null
 
     private var user: User? = null
 
@@ -56,37 +57,32 @@ class UserForm: Fragment() {
     }
 
     init {
-        ApplicationFacade.getInstance(ApplicationFacade.KEY).register(WeakReference(this))
+        ApplicationFacade.getInstance(ApplicationFacade.KEY).register(WeakReference(this), TAG)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = UserFormBinding.inflate(inflater, container, false)
 
-        lifecycleScope.launch(CoroutineExceptionHandler { _, e ->
-            (activity as? EmployeeAdmin)?.alert(e)?.show()
-        }) {
-            IdlingResource.increment()
+        val adapter = ArrayAdapter(requireActivity(), android.R.layout.simple_spinner_item, arrayListOf("--None Selected--")) // Set UI Data: Default
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.spinner.adapter = adapter
 
+        lifecycleScope.launch(CoroutineExceptionHandler { _, e -> (activity as? EmployeeAdmin)?.alert(e)?.show() }) {
             launch { // Get UI Data: IO
-                val items = listOf("--None Selected--") + (delegate?.findAllDepartments()?.map { it.name } ?: listOf())
-                val adapter = ArrayAdapter(requireActivity(), android.R.layout.simple_spinner_item, items)
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                binding.spinner.adapter = adapter
+                val departments = delegate?.findAllDepartments()
+                adapter.addAll(departments?.map { it.name } ?: listOf()) // Set UI Data
             }
 
             launch { // Get User Data: IO
-                arguments?.getLong("id")?.let {
+                arguments?.getInt("id")?.let {
                     binding.username.isEnabled = false
-                    map = delegate?.findById(it)
-                    user = map?.keys?.first()
+                    user = delegate?.findById(it)
                 }
             }
-        }.invokeOnCompletion { // Upon completion to avoid race condition with UI Data thread
+        }.invokeOnCompletion { throwable -> // Upon completion to avoid race condition with UI Data thread
+            if (throwable != null) return@invokeOnCompletion
             binding.progressBar.visibility = View.GONE
             binding.user = user // Set User Data
-            val department = map?.values?.first()
-            department?.let { binding.spinner.setSelection(it.id.toInt()) }
-            IdlingResource.decrement()
         }
 
         return binding.root
@@ -109,8 +105,9 @@ class UserForm: Fragment() {
     }
 
     private fun save() {
-        user = User(arguments?.getLong("id") ?: 0, binding.username.text.toString(), binding.first.text.toString(), binding.last.text.toString(),
-            binding.email.text.toString(), binding.password.text.toString(), binding.spinner.selectedItemPosition.toLong())
+        user = User(arguments?.getInt("id") ?: 0, binding.username.text.toString(), binding.first.text.toString(),
+            binding.last.text.toString(), binding.email.text.toString(), binding.password.text.toString(),
+            Department(binding.spinner.selectedItemPosition, binding.spinner.selectedItem.toString()))
 
         user?.validate(binding.confirm.text.toString())?.let {
             (activity as? EmployeeAdmin)?.alert(java.lang.Exception(it))?.show()
@@ -120,21 +117,22 @@ class UserForm: Fragment() {
         lifecycleScope.launch(CoroutineExceptionHandler { _, e ->
             (activity as? EmployeeAdmin)?.alert(e)?.show()
         }) {
-            IdlingResource.increment()
-            arguments?.getLong("id")?.let {
-                delegate?.update(user!!, roles)
-            } ?: run {
-                user?.id = delegate?.save(user!!, roles) ?: 0
+            user?.let { user ->
+                arguments?.getInt("id")?.let {
+                    delegate?.update(user, roles)
+                } ?: run {
+                    delegate?.save(user, roles)
+                }
             }
-        }.invokeOnCompletion {
-            IdlingResource.decrement()
+        }.invokeOnCompletion { throwable ->
+            if (throwable != null) return@invokeOnCompletion
             findNavController().navigate(R.id.action_userForm_to_userList)
         }
     }
 
     private fun selectRoles() {
         val userRole = UserRole() // Get Data: View Initialization
-        arguments?.getLong("id")?.let { id ->
+        arguments?.getInt("id")?.let { id ->
             userRole.arguments = bundleOf("id" to id, "roles" to roles)
         } ?: run {
             userRole.arguments = bundleOf( "roles" to roles)
@@ -151,6 +149,7 @@ class UserForm: Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        delegate?.remove()
     }
 
     fun setDelegate(delegate: IUserForm) {

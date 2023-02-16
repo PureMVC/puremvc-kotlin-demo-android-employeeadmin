@@ -8,42 +8,52 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.controller
 
-import androidx.room.Room
-import androidx.room.RoomDatabase
-import androidx.sqlite.db.SupportSQLiteDatabase
-import org.puremvc.kotlin.demos.android.employeeadmin.Application
+import com.google.gson.GsonBuilder
+import okhttp3.OkHttpClient
+import okhttp3.ResponseBody
+import okhttp3.logging.HttpLoggingInterceptor
 import org.puremvc.kotlin.demos.android.employeeadmin.ApplicationFacade
+import org.puremvc.kotlin.demos.android.employeeadmin.BuildConfig
 import org.puremvc.kotlin.demos.android.employeeadmin.model.RoleProxy
 import org.puremvc.kotlin.demos.android.employeeadmin.model.UserProxy
-import org.puremvc.kotlin.demos.android.employeeadmin.model.data.AppDatabase
+import org.puremvc.kotlin.demos.android.employeeadmin.model.service.Error
+import org.puremvc.kotlin.demos.android.employeeadmin.model.service.RoleService
+import org.puremvc.kotlin.demos.android.employeeadmin.model.service.UserService
 import org.puremvc.kotlin.demos.android.employeeadmin.view.ApplicationMediator
 import org.puremvc.kotlin.multicore.interfaces.INotification
 import org.puremvc.kotlin.multicore.patterns.command.SimpleCommand
+import retrofit2.Converter
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import java.lang.ref.WeakReference
+import java.util.concurrent.TimeUnit
 
 class StartupCommand: SimpleCommand() {
 
     override fun execute(notification: INotification) {
+        try {
+            val client = OkHttpClient.Builder().connectTimeout(1, TimeUnit.MINUTES)
+                .readTimeout(15, TimeUnit.SECONDS).writeTimeout(5, TimeUnit.SECONDS)
+                .addInterceptor(HttpLoggingInterceptor().setLevel(
+                    if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE))
+                .addInterceptor { it.proceed(it.request().newBuilder()
+                    .header("User-Agent:", "Android").build()) }
+                .build()
 
-        val application = notification.body as Application
+            val retrofit = Retrofit.Builder().baseUrl("http://10.0.2.2:8080")
+                .client(client).addConverterFactory(GsonConverterFactory.create(GsonBuilder().serializeNulls().create()))
+                .build()
 
-        val database = Room.databaseBuilder(application, AppDatabase::class.java, "employeeadmin.sqlite")
-            .addCallback(object: RoomDatabase.Callback() {
-                override fun onCreate(db: SupportSQLiteDatabase) {
-                    super.onCreate(db)
-                    db.execSQL("INSERT INTO department(id, name) VALUES(1, 'Accounting'), (2, 'Sales'), (3, 'Plant'), (4, 'Shipping'), (5, 'Quality Control')")
-                    db.execSQL("INSERT INTO role(id, name) VALUES(1, 'Administrator'), (2, 'Accounts Payable'), (3, 'Accounts Receivable'), (4, 'Employee Benefits'), (5, 'General Ledger'),(6, 'Payroll'), (7, 'Inventory'), (8, 'Production'), (9, 'Quality Control'), (10, 'Sales'), (11, 'Orders'), (12, 'Customers'), (13, 'Shipping'), (14, 'Returns')")
-                    db.execSQL("INSERT INTO user(id, username, first, last, email, password, department_id) VALUES(1, 'lstooge', 'Larry', 'Stooge', 'larry@stooges.com', 'ijk456', 1), (2, 'cstooge', 'Curly', 'Stooge', 'curly@stooges.com', 'xyz987', 2), (3, 'mstooge', 'Moe', 'Stooge', 'moe@stooges.com', 'abc123', 3)")
-                    db.execSQL("INSERT INTO user_role(user_id, role_id) VALUES(1, 4), (2, 3), (2, 5), (3, 8), (3, 10), (3, 13)")
-                }
-            })
-            .build()
+            val converter: Converter<ResponseBody, Error> = retrofit.responseBodyConverter(Error::class.java, arrayOfNulls<Annotation>(0))
 
-        facade.registerProxy(UserProxy(database.userDAO()))
-        facade.registerProxy(RoleProxy(database.roleDAO()))
+            facade.registerProxy(UserProxy(retrofit.create(UserService::class.java), converter))
+            facade.registerProxy(RoleProxy(retrofit.create(RoleService::class.java), converter))
 
-        facade.registerCommand(ApplicationFacade.REGISTER) { RegisterCommand() }
-        facade.registerMediator(ApplicationMediator(WeakReference(application)))
+            facade.registerCommand(ApplicationFacade.REGISTER) { RegisterCommand() }
+            facade.registerMediator(ApplicationMediator(WeakReference(notification.body)))
+        } catch (e: Exception) {
+            println(e)
+        }
     }
 
 }

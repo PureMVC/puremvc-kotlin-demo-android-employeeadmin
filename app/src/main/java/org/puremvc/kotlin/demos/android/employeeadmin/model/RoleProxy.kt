@@ -8,31 +8,45 @@
 
 package org.puremvc.kotlin.demos.android.employeeadmin.model
 
-import org.puremvc.kotlin.demos.android.employeeadmin.model.data.RoleDAO
+import okhttp3.ResponseBody
+import org.puremvc.kotlin.demos.android.employeeadmin.model.service.Error
+import org.puremvc.kotlin.demos.android.employeeadmin.model.service.RoleService
 import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.Role
-import org.puremvc.kotlin.demos.android.employeeadmin.model.valueObject.UserRoleJoin
 import org.puremvc.kotlin.multicore.patterns.proxy.Proxy
+import retrofit2.Converter
 
-class RoleProxy(private val roleDAO: RoleDAO): Proxy(NAME, null) {
+class RoleProxy(private val roleService: RoleService, val converter: Converter<ResponseBody, Error>): Proxy(NAME, null) {
 
     companion object {
         const val NAME: String = "RoleProxy"
     }
 
-    suspend fun findAll(): List<Role> {
-        return roleDAO.findAll()
+    suspend fun findAll(): List<Role>? {
+        val result = roleService.findAll()
+        if (result.isSuccessful)
+            return result.body()
+        throw Exception(result.errorBody()?.let { converter.convert(it).toString() })
     }
 
-    suspend fun findByUserId(id: Long): List<Role> {
-        return roleDAO.findByUserId(id)
+    suspend fun findByUserId(id: Int): List<Role>? {
+        val result = roleService.findByUserId(id)
+        if (result.isSuccessful)
+            return result.body()
+        throw Exception(result.errorBody()?.let { converter.convert(it).toString() })
     }
 
-    suspend fun insertUserRoles(id: Long, roles: List<Role>) {
-        return roleDAO.insertUserRoles(roles.map { UserRoleJoin(id, it.id) })
+    suspend fun insertUserRoles(id: Int, roles: List<Role>): List<Int>? {
+        val result = roleService.updateByUserId(id, roles.map { it.id })
+        if (result.isSuccessful)
+            return result.body()
+        throw Exception(result.errorBody()?.let { converter.convert(it).toString() })
     }
 
-    suspend fun updateByUserId(id: Long, roles: List<Role>) {
-        return roleDAO.updateByUserId(id, roles.map { UserRoleJoin(id, it.id) })
+    suspend fun updateByUserId(id: Int, roles: List<Role>): List<Int>? {
+        val result = roleService.updateByUserId(id, roles.map { it.id })
+        if (result.isSuccessful)
+            return result.body()
+        throw Exception(result.errorBody()?.let { converter.convert(it).toString() })
     }
 
 }

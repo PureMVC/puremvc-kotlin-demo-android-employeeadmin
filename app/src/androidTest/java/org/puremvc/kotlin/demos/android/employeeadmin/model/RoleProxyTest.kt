@@ -30,7 +30,7 @@ class RoleProxyTest: TestCase() {
     @Before
     override fun setUp() {
         database = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext(), AppDatabase::class.java).build()
-        roleProxy = RoleProxy(database.roleDAO())
+        roleProxy = RoleProxy(database.roleDAO(), handler)
 
         database.userDAO().insertAll(listOf(
             Department(1, "Accounting"),
