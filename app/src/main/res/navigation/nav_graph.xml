@@ -5,7 +5,7 @@
 
     <fragment
         android:id="@+id/userList"
-        android:name="org.puremvc.kotlin.demos.android.employeeadmin.view.components.UserList"
+        android:name="org.puremvc.kotlin.demos.android.employeeadmin.presentation.components.UserList"
         android:label="User List">
 
         <action
@@ -19,12 +19,7 @@
 
     <fragment
         android:id="@+id/userForm"
-        android:name="org.puremvc.kotlin.demos.android.employeeadmin.view.components.UserForm"
-        android:label="User Form">
-        <action
-            android:id="@+id/action_userForm_to_userList"
-            app:popUpTo="@id/userList"
-            app:popUpToInclusive="false" />
-    </fragment>
+        android:name="org.puremvc.kotlin.demos.android.employeeadmin.presentation.components.UserForm"
+        android:label="User Form"/>
 
 </navigation>

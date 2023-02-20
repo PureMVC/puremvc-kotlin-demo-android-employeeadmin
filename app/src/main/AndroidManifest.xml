@@ -12,7 +12,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".view.components.EmployeeAdmin" android:exported="true">
+        <activity android:name=".presentation.components.EmployeeAdmin" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
